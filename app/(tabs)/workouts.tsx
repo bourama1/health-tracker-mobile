@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, FlatList, RefreshControl, View } from 'react-native';
-import { Card, Title, Paragraph, FAB, ActivityIndicator } from 'react-native-paper';
+import {
+  Card,
+  Title,
+  Paragraph,
+  FAB,
+  ActivityIndicator,
+} from 'react-native-paper';
 import { getWorkouts } from '@/src/services/api';
 
 export default function WorkoutsScreen() {

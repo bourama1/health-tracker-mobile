@@ -1,6 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, FlatList, RefreshControl, View, Image, Dimensions } from 'react-native';
-import { FAB, ActivityIndicator, Text, List, Divider } from 'react-native-paper';
+import {
+  StyleSheet,
+  FlatList,
+  RefreshControl,
+  View,
+  Image,
+  Dimensions,
+} from 'react-native';
+import {
+  FAB,
+  ActivityIndicator,
+  Text,
+  List,
+  Divider,
+} from 'react-native-paper';
 import { getPhotoDates } from '@/src/services/api';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -66,17 +79,13 @@ export default function PhotosScreen() {
           <List.Item
             title={new Date(item.date).toLocaleDateString()}
             description="Tap to view photos"
-            left={props => <List.Icon {...props} icon="calendar" />}
+            left={(props) => <List.Icon {...props} icon="calendar" />}
             onPress={() => console.log('View photos for', item.date)}
           />
         )}
         ItemSeparatorComponent={() => <Divider />}
       />
-      <FAB
-        style={styles.fab}
-        icon="camera"
-        onPress={pickImage}
-      />
+      <FAB style={styles.fab} icon="camera" onPress={pickImage} />
     </View>
   );
 }

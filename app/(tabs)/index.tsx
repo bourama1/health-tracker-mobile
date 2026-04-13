@@ -14,7 +14,10 @@ export default function DashboardScreen() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [mRes, sRes] = await Promise.all([getMeasurements(), getSleepRecords()]);
+        const [mRes, sRes] = await Promise.all([
+          getMeasurements(),
+          getSleepRecords(),
+        ]);
         setMeasurements(mRes.data.slice(-7).reverse()); // Last 7 records
         setSleepRecords(sRes.data.slice(-7).reverse());
       } catch (error) {
@@ -35,13 +38,23 @@ export default function DashboardScreen() {
   }
 
   const weightData = {
-    labels: measurements.map(m => new Date(m.date).toLocaleDateString().split('/')[0] + '/' + new Date(m.date).toLocaleDateString().split('/')[1]),
-    datasets: [{ data: measurements.map(m => m.bodyweight || 0) }]
+    labels: measurements.map(
+      (m) =>
+        new Date(m.date).toLocaleDateString().split('/')[0] +
+        '/' +
+        new Date(m.date).toLocaleDateString().split('/')[1]
+    ),
+    datasets: [{ data: measurements.map((m) => m.bodyweight || 0) }],
   };
 
   const sleepData = {
-    labels: sleepRecords.map(s => new Date(s.date).toLocaleDateString().split('/')[0] + '/' + new Date(s.date).toLocaleDateString().split('/')[1]),
-    datasets: [{ data: sleepRecords.map(s => s.duration || 0) }]
+    labels: sleepRecords.map(
+      (s) =>
+        new Date(s.date).toLocaleDateString().split('/')[0] +
+        '/' +
+        new Date(s.date).toLocaleDateString().split('/')[1]
+    ),
+    datasets: [{ data: sleepRecords.map((s) => s.duration || 0) }],
   };
 
   return (
@@ -58,7 +71,9 @@ export default function DashboardScreen() {
               bezier
               style={styles.chart}
             />
-          ) : <Text>No data available</Text>}
+          ) : (
+            <Text>No data available</Text>
+          )}
         </Card.Content>
       </Card>
 
@@ -73,7 +88,9 @@ export default function DashboardScreen() {
               chartConfig={chartConfig}
               style={styles.chart}
             />
-          ) : <Text>No data available</Text>}
+          ) : (
+            <Text>No data available</Text>
+          )}
         </Card.Content>
       </Card>
     </ScrollView>
@@ -88,13 +105,13 @@ const chartConfig = {
   color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
   labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
   style: {
-    borderRadius: 16
+    borderRadius: 16,
   },
   propsForDots: {
     r: '6',
     strokeWidth: '2',
-    stroke: '#ffa726'
-  }
+    stroke: '#ffa726',
+  },
 };
 
 const styles = StyleSheet.create({
@@ -113,6 +130,6 @@ const styles = StyleSheet.create({
   },
   chart: {
     marginVertical: 8,
-    borderRadius: 16
-  }
+    borderRadius: 16,
+  },
 });

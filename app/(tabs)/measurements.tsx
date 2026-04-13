@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, FlatList, RefreshControl, View } from 'react-native';
-import { List, Card, Title, Paragraph, FAB, ActivityIndicator, Divider } from 'react-native-paper';
+import {
+  List,
+  Card,
+  Title,
+  Paragraph,
+  FAB,
+  ActivityIndicator,
+  Divider,
+} from 'react-native-paper';
 import { getMeasurements } from '@/src/services/api';
 
 export default function MeasurementsScreen() {
@@ -49,7 +57,7 @@ export default function MeasurementsScreen() {
           <List.Item
             title={`Weight: ${item.bodyweight} kg`}
             description={`${new Date(item.date).toLocaleDateString()} - Body Fat: ${item.body_fat}%`}
-            left={props => <List.Icon {...props} icon="scale-bathroom" />}
+            left={(props) => <List.Icon {...props} icon="scale-bathroom" />}
           />
         )}
         ItemSeparatorComponent={() => <Divider />}

@@ -1,11 +1,20 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-import { PaperProvider, Button, Text, ActivityIndicator } from 'react-native-paper';
+import {
+  PaperProvider,
+  Button,
+  Text,
+  ActivityIndicator,
+} from 'react-native-paper';
 import { View, StyleSheet } from 'react-native';
 
 import { useColorScheme } from '@/components/useColorScheme';
@@ -67,11 +76,18 @@ function RootLayoutNav() {
   if (!isAuthenticated) {
     return (
       <PaperProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <ThemeProvider
+          value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
+        >
           <View style={styles.loginContainer}>
             <Text style={styles.title}>Health Tracker</Text>
             <Text style={styles.subtitle}>Sign in to continue</Text>
-            <Button mode="contained" icon="google" onPress={login} style={styles.button}>
+            <Button
+              mode="contained"
+              icon="google"
+              onPress={login}
+              style={styles.button}
+            >
               Sign in with Google
             </Button>
           </View>

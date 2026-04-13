@@ -23,12 +23,15 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: useClientOnlyValue(false, true),
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Dashboard',
-          tabBarIcon: ({ color }) => <TabBarIcon name="dashboard" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="dashboard" color={color} />
+          ),
           headerRight: () => (
             <Link href="/modal" asChild>
               <Pressable>
@@ -49,14 +52,18 @@ export default function TabLayout() {
         name="workouts"
         options={{
           title: 'Workouts',
-          tabBarIcon: ({ color }) => <TabBarIcon name="heartbeat" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="heartbeat" color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="measurements"
         options={{
           title: 'Stats',
-          tabBarIcon: ({ color }) => <TabBarIcon name="balance-scale" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="balance-scale" color={color} />
+          ),
         }}
       />
       <Tabs.Screen

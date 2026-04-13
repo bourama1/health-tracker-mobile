@@ -15,7 +15,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [user, setUser] = useState(null);
@@ -48,20 +50,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('[Auth] Generated Redirect URL:', redirectUrl);
 
       const authUrl = `${baseUrl}/api/auth/google?platform=mobile&redirect=${encodeURIComponent(redirectUrl)}`;
-      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUrl);
-      
+      const result = await WebBrowser.openAuthSessionAsync(
+        authUrl,
+        redirectUrl
+      );
+
       if (result.type === 'success' && result.url) {
         // Parse the token from the redirect URL
         const parsed = Linking.parse(result.url);
         const token = parsed.queryParams?.token;
-        
+
         if (token) {
           console.log('[Auth] Exchanging token for session...');
           // Call verify endpoint to set the session cookie in axios
           await api.post('/auth/google/verify', { access_token: token });
           await checkAuth();
         } else {
-          console.error('[Auth] Success, but no token found in URL:', result.url);
+          console.error(
+            '[Auth] Success, but no token found in URL:',
+            result.url
+          );
         }
       }
     } catch (error) {
@@ -80,7 +88,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isCheckingAuth, user, login, logout }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, isCheckingAuth, user, login, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );
