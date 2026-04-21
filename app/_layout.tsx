@@ -13,7 +13,6 @@ import {
   PaperProvider,
   MD3LightTheme,
   MD3DarkTheme,
-  adaptNavigationThemes,
   Button,
   Text,
   ActivityIndicator,
@@ -22,11 +21,6 @@ import { View, StyleSheet } from 'react-native';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { AuthProvider, useAuth } from '@/src/context/AuthContext';
-
-const { LightTheme, DarkTheme: NavDarkTheme } = adaptNavigationThemes({
-  reactNavigationLight: DefaultTheme,
-  reactNavigationDark: DarkTheme,
-});
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -78,7 +72,7 @@ function RootLayoutNav() {
       ? { ...MD3DarkTheme, colors: MD3DarkTheme.colors }
       : { ...MD3LightTheme, colors: MD3LightTheme.colors };
 
-  const navTheme = colorScheme === 'dark' ? NavDarkTheme : LightTheme;
+  const navTheme = colorScheme === 'dark' ? DarkTheme : DefaultTheme;
 
   if (isCheckingAuth) {
     return (
