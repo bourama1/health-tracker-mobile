@@ -11,7 +11,6 @@ import {
 import {
   Card,
   Title,
-  Paragraph,
   Button,
   TextInput,
   IconButton,

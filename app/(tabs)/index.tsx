@@ -10,6 +10,7 @@ import {
 import {
   Card,
   Title,
+  Paragraph,
   ActivityIndicator,
   Text,
   Button,

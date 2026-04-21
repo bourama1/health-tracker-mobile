@@ -9,7 +9,6 @@ import {
 import {
   Card,
   Title,
-  Paragraph,
   FAB,
   ActivityIndicator,
   Portal,
