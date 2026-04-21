@@ -18,6 +18,7 @@ import {
   ActivityIndicator,
   Portal,
   Dialog,
+  FAB,
   Text,
   Divider,
   useTheme,

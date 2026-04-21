@@ -61,7 +61,10 @@ export default function DashboardScreen() {
       ]);
       setMeasurements(mRes.data);
       setSleepRecords(sRes.data);
-      setRecentWorkouts(wRes.data);
+      const sortedWorkouts = wRes.data.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      setRecentWorkouts(sortedWorkouts);
       setStats(stRes.data);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -361,17 +364,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 24,
-    gap: 8,
+    gap: 6,
   },
   statusCard: {
     flex: 1,
+    minWidth: 90,
     borderRadius: 12,
     elevation: 2,
   },
   statusContent: {
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 4,
+    paddingHorizontal: 2,
   },
   statusLabel: {
     fontSize: 10,

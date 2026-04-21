@@ -55,18 +55,28 @@ function RestTimer({
   onDone: () => void;
 }) {
   const [remaining, setRemaining] = useState(seconds);
+  const endTimeRef = useRef(Date.now() + seconds * 1000);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (remaining <= 0) {
-      onDone();
-      return;
-    }
-    timerRef.current = setTimeout(() => setRemaining((r) => r - 1), 1000);
+    const updateTimer = () => {
+      const now = Date.now();
+      const left = Math.max(0, Math.round((endTimeRef.current - now) / 1000));
+      setRemaining(left);
+
+      if (left <= 0) {
+        onDone();
+      } else {
+        timerRef.current = setTimeout(updateTimer, 1000);
+      }
+    };
+
+    timerRef.current = setTimeout(updateTimer, 1000);
+
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [remaining]);
+  }, [onDone]);
 
   const progress = remaining / seconds;
 
