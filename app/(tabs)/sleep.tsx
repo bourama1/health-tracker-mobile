@@ -21,6 +21,7 @@ import {
   List,
   DataTable,
   IconButton,
+  useTheme,
 } from 'react-native-paper';
 import { LineChart } from 'react-native-chart-kit';
 import {
@@ -52,6 +53,7 @@ const minutesToHm = (minutes: any) => {
 };
 
 export default function SleepScreen() {
+  const theme = useTheme();
   const [history, setHistory] = useState<SleepRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -190,8 +192,20 @@ export default function SleepScreen() {
 
   const selectedOpt = sleepStatsOptions.find((o) => o.value === selectedStat);
 
+  const currentChartConfig = {
+    ...chartConfig,
+    backgroundColor: theme.colors.surface,
+    backgroundGradientFrom: theme.colors.surface,
+    backgroundGradientTo: theme.colors.surface,
+    color: (opacity = 1) => `rgba(103, 58, 183, ${opacity})`,
+    labelColor: (opacity = 1) =>
+      theme.dark
+        ? `rgba(255, 255, 255, ${opacity})`
+        : `rgba(0, 0, 0, ${opacity})`,
+  };
+
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView style={styles.container}>
         <View style={styles.syncContainer}>
           <Button
@@ -199,7 +213,7 @@ export default function SleepScreen() {
             icon="google"
             onPress={() => handleSync('google')}
             disabled={syncing}
-            style={styles.syncButton}
+            style={[styles.syncButton, { borderColor: theme.colors.primary }]}
             compact
           >
             Google
@@ -209,7 +223,7 @@ export default function SleepScreen() {
             icon="sync"
             onPress={() => handleSync('ultrahuman')}
             disabled={syncing}
-            style={styles.syncButton}
+            style={[styles.syncButton, { borderColor: theme.colors.primary }]}
             compact
           >
             Ultrahuman
@@ -233,13 +247,21 @@ export default function SleepScreen() {
                 onPress={() => setSelectedStat(opt.value)}
                 style={[
                   styles.metricChip,
-                  isSelected && styles.metricChipSelected,
+                  {
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.outline,
+                  },
+                  isSelected && {
+                    backgroundColor: theme.colors.primary,
+                    borderColor: theme.colors.primary,
+                  },
                 ]}
               >
                 <Text
                   style={[
                     styles.metricLabel,
-                    isSelected && styles.metricTextSelected,
+                    { color: theme.colors.onSurfaceVariant },
+                    isSelected && { color: theme.colors.onPrimary },
                   ]}
                 >
                   {opt.label.split(' ')[0]}
@@ -248,7 +270,8 @@ export default function SleepScreen() {
                   <Text
                     style={[
                       styles.metricValue,
-                      isSelected && styles.metricTextSelected,
+                      { color: theme.colors.onSurface },
+                      isSelected && { color: theme.colors.onPrimary },
                     ]}
                   >
                     {displayValue}
@@ -267,7 +290,7 @@ export default function SleepScreen() {
                 data={chartData}
                 width={width - 48}
                 height={220}
-                chartConfig={chartConfig}
+                chartConfig={currentChartConfig}
                 bezier
                 style={styles.chart}
               />
@@ -281,7 +304,9 @@ export default function SleepScreen() {
 
         <Title style={styles.mainTitle}>History</Title>
         <ScrollView horizontal>
-          <DataTable style={styles.table}>
+          <DataTable
+            style={[styles.table, { backgroundColor: theme.colors.surface }]}
+          >
             <DataTable.Header>
               <DataTable.Title style={{ width: 100 }}>Date</DataTable.Title>
               <DataTable.Title style={{ width: 60 }}>Score</DataTable.Title>
@@ -320,7 +345,7 @@ export default function SleepScreen() {
         <Dialog
           visible={visible}
           onDismiss={() => setVisible(false)}
-          style={styles.dialog}
+          style={[styles.dialog, { backgroundColor: theme.colors.surface }]}
         >
           <Dialog.Title>Add Sleep Entry</Dialog.Title>
           <Dialog.ScrollArea style={{ maxHeight: 400 }}>
@@ -440,7 +465,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#f5f5f5',
   },
   loading: {
     flex: 1,
@@ -453,9 +477,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     gap: 8,
   },
-  syncButton: {
-    borderColor: '#673ab7',
-  },
+  syncButton: {},
   mainTitle: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -469,29 +491,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#fff',
     marginRight: 8,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#ddd',
     minWidth: 80,
-  },
-  metricChipSelected: {
-    backgroundColor: '#673ab7',
-    borderColor: '#673ab7',
   },
   metricLabel: {
     fontSize: 10,
-    color: '#666',
   },
   metricValue: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#333',
-  },
-  metricTextSelected: {
-    color: '#fff',
   },
   chartCard: {
     marginBottom: 20,
@@ -512,7 +523,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   table: {
-    backgroundColor: '#fff',
     borderRadius: 8,
   },
   fab: {
@@ -520,7 +530,6 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 0,
     bottom: 0,
-    backgroundColor: '#673ab7',
   },
   dialog: {
     borderRadius: 12,

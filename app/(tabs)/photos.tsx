@@ -13,12 +13,14 @@ import {
   Title,
   Button,
   TextInput,
+  Chip,
   IconButton,
   ActivityIndicator,
   Portal,
   Dialog,
   Text,
   Divider,
+  useTheme,
 } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import api from '@/src/services/api';
@@ -27,6 +29,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 const { width } = Dimensions.get('window');
 
 export default function PhotosScreen() {
+  const theme = useTheme();
   const [dates, setDates] = useState<string[]>([]);
   const [selectedDate1, setSelectedDate1] = useState('');
   const [selectedDate2, setSelectedDate2] = useState('');
@@ -142,41 +145,70 @@ export default function PhotosScreen() {
     label: string;
   }) => (
     <View style={styles.imageBox}>
-      <Text style={styles.imageLabel}>{label}</Text>
+      <Text
+        style={[styles.imageLabel, { color: theme.colors.onSurfaceVariant }]}
+      >
+        {label}
+      </Text>
       {path ? (
         <Image
           source={{ uri: path }}
-          style={styles.image}
+          style={[
+            styles.image,
+            { backgroundColor: theme.colors.surfaceVariant },
+          ]}
           resizeMode="contain"
         />
       ) : (
-        <View style={styles.placeholderBox}>
+        <View
+          style={[
+            styles.placeholderBox,
+            {
+              backgroundColor: theme.colors.surfaceVariant,
+              borderColor: theme.colors.outline,
+            },
+          ]}
+        >
           <MaterialCommunityIcons
             name="image-off-outline"
             size={32}
-            color="#ccc"
+            color={theme.colors.outline}
           />
-          <Text style={{ fontSize: 10, color: '#aaa' }}>No Image</Text>
+          <Text style={{ fontSize: 10, color: theme.colors.outline }}>
+            No Image
+          </Text>
         </View>
       )}
     </View>
   );
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView style={styles.container}>
-        <Title style={styles.mainTitle}>Progress Photos</Title>
+        <Title style={[styles.mainTitle, { color: theme.colors.onBackground }]}>
+          Progress Photos
+        </Title>
 
         <View style={styles.selectorContainer}>
           <View style={{ flex: 1, marginRight: 8 }}>
-            <Text style={styles.selectLabel}>Date 1</Text>
+            <Text
+              style={[
+                styles.selectLabel,
+                { color: theme.colors.onSurfaceVariant },
+              ]}
+            >
+              Date 1
+            </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {dates.map((d) => (
                 <Chip
                   key={d}
                   selected={selectedDate1 === d}
                   onPress={() => setSelectedDate1(d)}
-                  style={styles.dateChip}
+                  style={[
+                    styles.dateChip,
+                    { backgroundColor: theme.colors.surface },
+                  ]}
                   compact
                 >
                   {d}
@@ -185,12 +217,22 @@ export default function PhotosScreen() {
             </ScrollView>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.selectLabel}>Date 2 (Compare)</Text>
+            <Text
+              style={[
+                styles.selectLabel,
+                { color: theme.colors.onSurfaceVariant },
+              ]}
+            >
+              Date 2 (Compare)
+            </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <Chip
                 selected={selectedDate2 === ''}
                 onPress={() => setSelectedDate2('')}
-                style={styles.dateChip}
+                style={[
+                  styles.dateChip,
+                  { backgroundColor: theme.colors.surface },
+                ]}
                 compact
               >
                 None
@@ -200,7 +242,10 @@ export default function PhotosScreen() {
                   key={d}
                   selected={selectedDate2 === d}
                   onPress={() => setSelectedDate2(d)}
-                  style={styles.dateChip}
+                  style={[
+                    styles.dateChip,
+                    { backgroundColor: theme.colors.surface },
+                  ]}
                   disabled={selectedDate1 === d}
                   compact
                 >
@@ -220,9 +265,11 @@ export default function PhotosScreen() {
             <MaterialCommunityIcons
               name="image-multiple-outline"
               size={64}
-              color="#ddd"
+              color={theme.colors.outline}
             />
-            <Text style={styles.emptyText}>Select a date to view photos</Text>
+            <Text style={[styles.emptyText, { color: theme.colors.outline }]}>
+              Select a date to view photos
+            </Text>
           </View>
         ) : (
           <View>
@@ -258,7 +305,7 @@ export default function PhotosScreen() {
         <Dialog
           visible={visible}
           onDismiss={() => setVisible(false)}
-          style={styles.dialog}
+          style={[styles.dialog, { backgroundColor: theme.colors.surface }]}
         >
           <Dialog.Title>Upload Photos</Dialog.Title>
           <Dialog.Content>
@@ -328,7 +375,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#f5f5f5',
   },
   mainTitle: {
     fontSize: 22,
@@ -340,13 +386,11 @@ const styles = StyleSheet.create({
   },
   selectLabel: {
     fontSize: 12,
-    color: '#666',
     marginBottom: 4,
     fontWeight: 'bold',
   },
   dateChip: {
     marginRight: 4,
-    backgroundColor: '#fff',
   },
   emptyState: {
     alignItems: 'center',
@@ -354,7 +398,6 @@ const styles = StyleSheet.create({
     marginTop: 80,
   },
   emptyText: {
-    color: '#999',
     marginTop: 12,
   },
   photoGrid: {
@@ -378,24 +421,20 @@ const styles = StyleSheet.create({
   imageLabel: {
     fontSize: 9,
     fontWeight: 'bold',
-    color: '#777',
     marginBottom: 4,
   },
   image: {
     width: '100%',
     aspectRatio: 3 / 4,
     borderRadius: 8,
-    backgroundColor: '#eee',
   },
   placeholderBox: {
     width: '100%',
     aspectRatio: 3 / 4,
     borderRadius: 8,
-    backgroundColor: '#eee',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#ddd',
     borderStyle: 'dashed',
   },
   fab: {
@@ -403,7 +442,6 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 0,
     bottom: 0,
-    backgroundColor: '#1976d2',
   },
   dialog: {
     borderRadius: 12,

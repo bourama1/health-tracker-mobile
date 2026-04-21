@@ -11,6 +11,9 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import {
   PaperProvider,
+  MD3LightTheme,
+  MD3DarkTheme,
+  adaptNavigationThemes,
   Button,
   Text,
   ActivityIndicator,
@@ -19,6 +22,11 @@ import { View, StyleSheet } from 'react-native';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { AuthProvider, useAuth } from '@/src/context/AuthContext';
+
+const { LightTheme, DarkTheme: NavDarkTheme } = adaptNavigationThemes({
+  reactNavigationLight: DefaultTheme,
+  reactNavigationDark: DarkTheme,
+});
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -65,9 +73,21 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const { isAuthenticated, isCheckingAuth, login } = useAuth();
 
+  const paperTheme =
+    colorScheme === 'dark'
+      ? { ...MD3DarkTheme, colors: MD3DarkTheme.colors }
+      : { ...MD3LightTheme, colors: MD3LightTheme.colors };
+
+  const navTheme = colorScheme === 'dark' ? NavDarkTheme : LightTheme;
+
   if (isCheckingAuth) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View
+        style={[
+          { flex: 1, justifyContent: 'center', alignItems: 'center' },
+          colorScheme === 'dark' && { backgroundColor: '#121212' },
+        ]}
+      >
         <ActivityIndicator size="large" />
       </View>
     );
@@ -75,11 +95,14 @@ function RootLayoutNav() {
 
   if (!isAuthenticated) {
     return (
-      <PaperProvider>
-        <ThemeProvider
-          value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
-        >
-          <View style={styles.loginContainer}>
+      <PaperProvider theme={paperTheme}>
+        <ThemeProvider value={navTheme}>
+          <View
+            style={[
+              styles.loginContainer,
+              colorScheme === 'dark' && { backgroundColor: '#121212' },
+            ]}
+          >
             <Text style={styles.title}>Health Tracker</Text>
             <Text style={styles.subtitle}>Sign in to continue</Text>
             <Button
@@ -97,8 +120,8 @@ function RootLayoutNav() {
   }
 
   return (
-    <PaperProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <PaperProvider theme={paperTheme}>
+      <ThemeProvider value={navTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal' }} />

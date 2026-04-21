@@ -130,27 +130,43 @@ export default function DashboardScreen() {
         }
       : null;
 
+  const currentChartConfig = {
+    ...chartConfig,
+    backgroundColor: theme.colors.surface,
+    backgroundGradientFrom: theme.colors.surface,
+    backgroundGradientTo: theme.colors.surface,
+    color: (opacity = 1) => `rgba(33, 150, 243, ${opacity})`,
+    labelColor: (opacity = 1) =>
+      theme.dark
+        ? `rgba(255, 255, 255, ${opacity})`
+        : `rgba(0, 0, 0, ${opacity})`,
+  };
+
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
       <View style={styles.header}>
-        <Title style={styles.welcome}>Summary</Title>
+        <Title style={[styles.welcome, { color: theme.colors.onBackground }]}>
+          Summary
+        </Title>
         <View style={styles.syncButtons}>
           <IconButton
             icon="google"
             size={20}
             onPress={() => handleSync('google')}
             disabled={syncing}
+            iconColor={theme.colors.onBackground}
           />
           <IconButton
             icon="sync"
             size={20}
             onPress={() => handleSync('ultrahuman')}
             disabled={syncing}
+            iconColor={theme.colors.onBackground}
           />
         </View>
       </View>
@@ -171,7 +187,7 @@ export default function DashboardScreen() {
           onPress={() => router.push('/measurements')}
           style={styles.actionBtn}
         >
-          Weight
+          Measures
         </Button>
         <Button
           mode="outlined"
@@ -216,7 +232,7 @@ export default function DashboardScreen() {
               size={24}
               color="#2196f3"
             />
-            <Text style={styles.statusLabel}>Weight</Text>
+            <Text style={styles.statusLabel}>Measures</Text>
             <Text style={styles.statusValue}>
               {todayWeight?.bodyweight || '-'}
             </Text>
@@ -233,10 +249,7 @@ export default function DashboardScreen() {
               data={weightChartData}
               width={width - 48}
               height={180}
-              chartConfig={{
-                ...chartConfig,
-                color: (opacity = 1) => `rgba(33, 150, 243, ${opacity})`,
-              }}
+              chartConfig={currentChartConfig}
               bezier
               style={styles.chart}
             />
@@ -316,7 +329,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#f8f9fa',
   },
   loading: {
     flex: 1,
@@ -349,19 +361,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 24,
+    gap: 8,
   },
   statusCard: {
-    width: '31%',
+    flex: 1,
     borderRadius: 12,
     elevation: 2,
   },
   statusContent: {
     alignItems: 'center',
     paddingVertical: 12,
+    paddingHorizontal: 4,
   },
   statusLabel: {
     fontSize: 10,
-    color: '#666',
     marginTop: 4,
   },
   statusValue: {

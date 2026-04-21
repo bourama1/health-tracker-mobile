@@ -23,6 +23,7 @@ import {
   List,
   DataTable,
   SegmentedButtons,
+  useTheme,
 } from 'react-native-paper';
 import {
   getPlans,
@@ -581,7 +582,12 @@ function HistoryPanel() {
 
   useEffect(() => {
     getWorkouts(30)
-      .then((res) => setHistory(res.data))
+      .then((res) => {
+        const sorted = res.data.sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+        setHistory(sorted);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -740,6 +746,7 @@ function StatsPanel() {
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function WorkoutsScreen() {
+  const theme = useTheme();
   const [tab, setTab] = useState('start');
   const [plans, setPlans] = useState<WorkoutPlan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<WorkoutPlan | null>(null);
@@ -782,8 +789,13 @@ export default function WorkoutsScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
-      <View style={styles.tabContainer}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <View
+        style={[
+          styles.tabContainer,
+          { backgroundColor: theme.colors.surfaceVariant },
+        ]}
+      >
         <SegmentedButtons
           value={tab}
           onValueChange={setTab}
@@ -798,7 +810,11 @@ export default function WorkoutsScreen() {
 
       {tab === 'start' && (
         <ScrollView style={styles.container}>
-          <Title style={styles.mainTitle}>Select a Plan</Title>
+          <Title
+            style={[styles.mainTitle, { color: theme.colors.onBackground }]}
+          >
+            Select a Plan
+          </Title>
           {plans.length === 0 && (
             <Text style={styles.emptyText}>
               No plans found. Create one on the web app!
@@ -810,8 +826,9 @@ export default function WorkoutsScreen() {
                 key={plan.id}
                 style={[
                   styles.planCard,
+                  { backgroundColor: theme.colors.surface },
                   selectedPlan?.id === plan.id && {
-                    borderColor: '#6200ee',
+                    borderColor: theme.colors.primary,
                     borderWidth: 1.5,
                   },
                 ]}
@@ -822,7 +839,14 @@ export default function WorkoutsScreen() {
                   {plan.description && (
                     <Paragraph numberOfLines={1}>{plan.description}</Paragraph>
                   )}
-                  <Text style={styles.planMeta}>{plan.days.length} Days</Text>
+                  <Text
+                    style={[
+                      styles.planMeta,
+                      { color: theme.colors.onSurfaceVariant },
+                    ]}
+                  >
+                    {plan.days.length} Days
+                  </Text>
                 </Card.Content>
               </Card>
             ))}
@@ -831,12 +855,19 @@ export default function WorkoutsScreen() {
           {selectedPlan && (
             <>
               <Divider style={{ marginVertical: 20 }} />
-              <Title style={styles.mainTitle}>{selectedPlan.name} Days</Title>
+              <Title
+                style={[styles.mainTitle, { color: theme.colors.onBackground }]}
+              >
+                {selectedPlan.name} Days
+              </Title>
               <View style={styles.dayList}>
                 {selectedPlan.days.map((day) => (
                   <Card
                     key={day.id}
-                    style={styles.dayCard}
+                    style={[
+                      styles.dayCard,
+                      { backgroundColor: theme.colors.surface },
+                    ]}
                     onPress={() => setActiveDay(day)}
                   >
                     <Card.Content>
@@ -849,7 +880,12 @@ export default function WorkoutsScreen() {
                         <View style={{ flex: 1 }}>
                           <Title style={styles.dayName}>{day.name}</Title>
                           {day.scheduled_days.length > 0 && (
-                            <Text style={styles.scheduledDays}>
+                            <Text
+                              style={[
+                                styles.scheduledDays,
+                                { color: theme.colors.primary },
+                              ]}
+                            >
                               {day.scheduled_days
                                 .map((d) => d.slice(0, 3))
                                 .join(', ')}
@@ -865,7 +901,10 @@ export default function WorkoutsScreen() {
                         {day.exercises.slice(0, 4).map((ex, i) => (
                           <Chip
                             key={i}
-                            style={styles.exerciseChip}
+                            style={[
+                              styles.exerciseChip,
+                              { backgroundColor: theme.colors.surfaceVariant },
+                            ]}
                             textStyle={{ fontSize: 10 }}
                             compact
                           >
@@ -874,7 +913,10 @@ export default function WorkoutsScreen() {
                         ))}
                         {day.exercises.length > 4 && (
                           <Chip
-                            style={styles.exerciseChip}
+                            style={[
+                              styles.exerciseChip,
+                              { backgroundColor: theme.colors.surfaceVariant },
+                            ]}
                             textStyle={{ fontSize: 10 }}
                             compact
                           >
@@ -904,11 +946,8 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     padding: 16,
-    backgroundColor: '#fff',
   },
-  segmentedButtons: {
-    backgroundColor: '#fff',
-  },
+  segmentedButtons: {},
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -922,7 +961,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     textAlign: 'center',
-    color: '#666',
     marginTop: 20,
   },
   planList: {
@@ -930,7 +968,6 @@ const styles = StyleSheet.create({
   },
   planCard: {
     marginBottom: 12,
-    backgroundColor: '#fff',
   },
   planName: {
     fontSize: 18,
@@ -938,7 +975,6 @@ const styles = StyleSheet.create({
   },
   planMeta: {
     fontSize: 12,
-    color: '#666',
     marginTop: 4,
   },
   dayList: {
@@ -946,7 +982,6 @@ const styles = StyleSheet.create({
   },
   dayCard: {
     marginBottom: 12,
-    backgroundColor: '#fff',
   },
   dayName: {
     fontSize: 16,
@@ -954,7 +989,6 @@ const styles = StyleSheet.create({
   },
   scheduledDays: {
     fontSize: 12,
-    color: '#6200ee',
     fontWeight: 'bold',
   },
   exerciseChips: {
@@ -965,7 +999,6 @@ const styles = StyleSheet.create({
   exerciseChip: {
     marginRight: 4,
     marginBottom: 4,
-    backgroundColor: '#f0f0f0',
   },
   timerCard: {
     marginBottom: 16,

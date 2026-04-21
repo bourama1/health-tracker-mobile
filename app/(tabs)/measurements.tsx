@@ -19,6 +19,7 @@ import {
   Divider,
   List,
   DataTable,
+  useTheme,
 } from 'react-native-paper';
 import { LineChart } from 'react-native-chart-kit';
 import { getMeasurements, addMeasurement } from '@/src/services/api';
@@ -39,6 +40,7 @@ const measurementOptions = [
 ];
 
 export default function MeasurementsScreen() {
+  const theme = useTheme();
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -59,7 +61,10 @@ export default function MeasurementsScreen() {
   const fetchMeasurements = useCallback(async () => {
     try {
       const response = await getMeasurements();
-      setMeasurements(response.data);
+      const sorted = response.data.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      setMeasurements(sorted);
     } catch (error) {
       console.error('Error fetching measurements:', error);
     } finally {
@@ -140,8 +145,20 @@ export default function MeasurementsScreen() {
     (o) => o.value === selectedMeasurement
   );
 
+  const currentChartConfig = {
+    ...chartConfig,
+    backgroundColor: theme.colors.surface,
+    backgroundGradientFrom: theme.colors.surface,
+    backgroundGradientTo: theme.colors.surface,
+    color: (opacity = 1) => `rgba(25, 118, 210, ${opacity})`,
+    labelColor: (opacity = 1) =>
+      theme.dark
+        ? `rgba(255, 255, 255, ${opacity})`
+        : `rgba(0, 0, 0, ${opacity})`,
+  };
+
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView style={styles.container}>
         <Title style={styles.mainTitle}>Progress Visualization</Title>
 
@@ -152,20 +169,30 @@ export default function MeasurementsScreen() {
         >
           {measurementOptions.map((opt) => {
             const isSelected = selectedMeasurement === opt.value;
-            const latest = measurements[0]?.[opt.value as keyof Measurement];
+            const latest = measurements.find(
+              (m) => m[opt.value as keyof Measurement] != null
+            )?.[opt.value as keyof Measurement];
             return (
               <TouchableOpacity
                 key={opt.value}
                 onPress={() => setSelectedMeasurement(opt.value)}
                 style={[
                   styles.metricChip,
-                  isSelected && styles.metricChipSelected,
+                  {
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.outline,
+                  },
+                  isSelected && {
+                    backgroundColor: theme.colors.primary,
+                    borderColor: theme.colors.primary,
+                  },
                 ]}
               >
                 <Text
                   style={[
                     styles.metricLabel,
-                    isSelected && styles.metricTextSelected,
+                    { color: theme.colors.onSurfaceVariant },
+                    isSelected && { color: theme.colors.onPrimary },
                   ]}
                 >
                   {opt.label.split(' ')[0]}
@@ -174,7 +201,8 @@ export default function MeasurementsScreen() {
                   <Text
                     style={[
                       styles.metricValue,
-                      isSelected && styles.metricTextSelected,
+                      { color: theme.colors.onSurface },
+                      isSelected && { color: theme.colors.onPrimary },
                     ]}
                   >
                     {latest}
@@ -193,7 +221,7 @@ export default function MeasurementsScreen() {
                 data={chartData}
                 width={width - 48}
                 height={220}
-                chartConfig={chartConfig}
+                chartConfig={currentChartConfig}
                 bezier
                 style={styles.chart}
               />
@@ -207,7 +235,9 @@ export default function MeasurementsScreen() {
 
         <Title style={styles.mainTitle}>History</Title>
         <ScrollView horizontal>
-          <DataTable style={styles.table}>
+          <DataTable
+            style={[styles.table, { backgroundColor: theme.colors.surface }]}
+          >
             <DataTable.Header>
               <DataTable.Title style={{ width: 100 }}>Date</DataTable.Title>
               {measurementOptions.map((opt) => (
@@ -233,7 +263,11 @@ export default function MeasurementsScreen() {
       </ScrollView>
 
       <Portal>
-        <Dialog visible={visible} onDismiss={hideDialog} style={styles.dialog}>
+        <Dialog
+          visible={visible}
+          onDismiss={hideDialog}
+          style={[styles.dialog, { backgroundColor: theme.colors.surface }]}
+        >
           <Dialog.Title>Add New Entry</Dialog.Title>
           <Dialog.ScrollArea style={{ maxHeight: 400 }}>
             <ScrollView>
@@ -358,7 +392,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#f5f5f5',
   },
   loading: {
     flex: 1,
@@ -369,7 +402,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#333',
   },
   metricPicker: {
     flexDirection: 'row',
@@ -379,29 +411,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#fff',
     marginRight: 8,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#ddd',
     minWidth: 80,
-  },
-  metricChipSelected: {
-    backgroundColor: '#1976d2',
-    borderColor: '#1976d2',
   },
   metricLabel: {
     fontSize: 10,
-    color: '#666',
   },
   metricValue: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#333',
-  },
-  metricTextSelected: {
-    color: '#fff',
   },
   chartCard: {
     marginBottom: 20,
@@ -422,7 +443,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   table: {
-    backgroundColor: '#fff',
     borderRadius: 8,
   },
   fab: {
@@ -430,7 +450,6 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 0,
     bottom: 0,
-    backgroundColor: '#1976d2',
   },
   dialog: {
     borderRadius: 12,
