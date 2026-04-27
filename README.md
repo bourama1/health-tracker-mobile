@@ -32,6 +32,7 @@ Health Tracker Mobile is a React Native application built with Expo, designed to
 
 1. Clone the repository.
 2. Install dependencies:
+
    ```bash
    npm install
    ```
@@ -45,6 +46,7 @@ npm start
 ```
 
 You can then run the app on:
+
 - **Android Emulator**: Press `a`
 - **iOS Simulator**: Press `i`
 - **Web**: Press `w`

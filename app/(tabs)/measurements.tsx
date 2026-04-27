@@ -77,6 +77,35 @@ export default function MeasurementsScreen() {
     fetchMeasurements();
   }, [fetchMeasurements]);
 
+  useEffect(() => {
+    const existing = measurements.find((m) => m.date === formData.date);
+    if (existing) {
+      setFormData((prev) => ({
+        ...prev,
+        bodyweight: existing.bodyweight?.toString() || '',
+        body_fat: existing.body_fat?.toString() || '',
+        chest: existing.chest?.toString() || '',
+        waist: existing.waist?.toString() || '',
+        biceps: existing.biceps?.toString() || '',
+        forearm: existing.forearm?.toString() || '',
+        calf: existing.calf?.toString() || '',
+        thigh: existing.thigh?.toString() || '',
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        bodyweight: '',
+        body_fat: '',
+        chest: '',
+        waist: '',
+        biceps: '',
+        forearm: '',
+        calf: '',
+        thigh: '',
+      }));
+    }
+  }, [formData.date, measurements]);
+
   const showDialog = () => setVisible(true);
   const hideDialog = () => setVisible(false);
 

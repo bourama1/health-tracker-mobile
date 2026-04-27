@@ -17,7 +17,9 @@ describe('AuthContext', () => {
 
   it('initially checks for authentication', async () => {
     const userData = { id: 1, name: 'John Doe' };
-    mock.onGet('/auth/status').reply(200, { authenticated: true, user: userData });
+    mock
+      .onGet('/auth/status')
+      .reply(200, { authenticated: true, user: userData });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -26,7 +28,9 @@ describe('AuthContext', () => {
   });
 
   it('handles logout correctly', async () => {
-    mock.onGet('/auth/status').reply(200, { authenticated: true, user: { id: 1 } });
+    mock
+      .onGet('/auth/status')
+      .reply(200, { authenticated: true, user: { id: 1 } });
     mock.onPost('/auth/logout').reply(200);
 
     const { result } = renderHook(() => useAuth(), { wrapper });

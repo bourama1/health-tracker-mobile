@@ -10,7 +10,7 @@ describe('Themed Components', () => {
   it('renders Text correctly', async () => {
     let tree: any;
     await act(async () => {
-        tree = renderer.create(<Text>Test</Text>);
+      tree = renderer.create(<Text>Test</Text>);
     });
     expect(tree).toBeTruthy();
   });
@@ -18,7 +18,7 @@ describe('Themed Components', () => {
   it('renders View correctly', async () => {
     let tree: any;
     await act(async () => {
-        tree = renderer.create(<View>Test</View>);
+      tree = renderer.create(<View>Test</View>);
     });
     expect(tree).toBeTruthy();
   });

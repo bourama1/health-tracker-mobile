@@ -94,6 +94,39 @@ export default function SleepScreen() {
     fetchHistory();
   }, [fetchHistory]);
 
+  useEffect(() => {
+    const existing = history.find((h) => h.date === formData.date);
+    if (existing) {
+      setFormData((prev) => ({
+        ...prev,
+        bedtime: existing.bedtime || '',
+        wake_time: existing.wake_time || '',
+        rhr: existing.rhr?.toString() || '',
+        hrv: existing.hrv?.toString() || '',
+        sleep_score: existing.sleep_score?.toString() || '',
+        temp_dev: existing.temp_dev?.toString() || '',
+        deep_sleep_minutes: existing.deep_sleep_minutes?.toString() || '',
+        rem_sleep_minutes: existing.rem_sleep_minutes?.toString() || '',
+        light_minutes: existing.light_minutes?.toString() || '',
+        awake_minutes: existing.awake_minutes?.toString() || '',
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        bedtime: '',
+        wake_time: '',
+        rhr: '',
+        hrv: '',
+        sleep_score: '',
+        temp_dev: '',
+        deep_sleep_minutes: '',
+        rem_sleep_minutes: '',
+        light_minutes: '',
+        awake_minutes: '',
+      }));
+    }
+  }, [formData.date, history]);
+
   const handleInputChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
