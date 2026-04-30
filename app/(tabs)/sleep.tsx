@@ -40,6 +40,9 @@ const sleepStatsOptions = [
   { label: 'RHR (bpm)', value: 'rhr', better: 'lower' },
   { label: 'HRV (ms)', value: 'hrv', better: 'higher' },
   { label: 'Score', value: 'sleep_score', better: 'higher' },
+  { label: 'Rest. %', value: 'restorative_sleep_percentage', better: 'higher' },
+  { label: 'Movements', value: 'movements', better: 'lower' },
+  { label: 'T&T', value: 'tosses_and_turns', better: 'lower' },
   { label: 'Temp Dev', value: 'temp_dev', better: 'lower' },
   { label: 'Deep (min)', value: 'deep_sleep_minutes', better: 'higher' },
   { label: 'REM (min)', value: 'rem_sleep_minutes', better: 'higher' },
@@ -72,6 +75,9 @@ export default function SleepScreen() {
     rem_sleep_minutes: '',
     light_minutes: '',
     awake_minutes: '',
+    restorative_sleep_percentage: '',
+    movements: '',
+    tosses_and_turns: '',
   });
 
   const fetchHistory = useCallback(async () => {
@@ -109,6 +115,9 @@ export default function SleepScreen() {
         rem_sleep_minutes: existing.rem_sleep_minutes?.toString() || '',
         light_minutes: existing.light_minutes?.toString() || '',
         awake_minutes: existing.awake_minutes?.toString() || '',
+        restorative_sleep_percentage: existing.restorative_sleep_percentage?.toString() || '',
+        movements: existing.movements?.toString() || '',
+        tosses_and_turns: existing.tosses_and_turns?.toString() || '',
       }));
     } else {
       setFormData((prev) => ({
@@ -123,6 +132,9 @@ export default function SleepScreen() {
         rem_sleep_minutes: '',
         light_minutes: '',
         awake_minutes: '',
+        restorative_sleep_percentage: '',
+        movements: '',
+        tosses_and_turns: '',
       }));
     }
   }, [formData.date, history]);
@@ -148,6 +160,9 @@ export default function SleepScreen() {
         rem_sleep_minutes: '',
         light_minutes: '',
         awake_minutes: '',
+        restorative_sleep_percentage: '',
+        movements: '',
+        tosses_and_turns: '',
       });
     } catch (err) {
       Alert.alert('Error', 'Failed to save sleep entry');
@@ -343,6 +358,7 @@ export default function SleepScreen() {
             <DataTable.Header>
               <DataTable.Title style={{ width: 100 }}>Date</DataTable.Title>
               <DataTable.Title style={{ width: 60 }}>Score</DataTable.Title>
+              <DataTable.Title style={{ width: 60 }}>Rest. %</DataTable.Title>
               <DataTable.Title style={{ width: 60 }}>RHR</DataTable.Title>
               <DataTable.Title style={{ width: 60 }}>Deep</DataTable.Title>
               <DataTable.Title style={{ width: 50 }}></DataTable.Title>
@@ -353,6 +369,9 @@ export default function SleepScreen() {
                 <DataTable.Cell style={{ width: 100 }}>{h.date}</DataTable.Cell>
                 <DataTable.Cell style={{ width: 60 }}>
                   {h.sleep_score || '-'}
+                </DataTable.Cell>
+                <DataTable.Cell style={{ width: 60 }}>
+                  {h.restorative_sleep_percentage != null ? `${h.restorative_sleep_percentage}%` : '-'}
                 </DataTable.Cell>
                 <DataTable.Cell style={{ width: 60 }}>
                   {h.rhr || '-'}
@@ -430,6 +449,32 @@ export default function SleepScreen() {
                 label="Sleep Score"
                 value={formData.sleep_score}
                 onChangeText={(v) => handleInputChange('sleep_score', v)}
+                keyboardType="numeric"
+                mode="outlined"
+                style={styles.input}
+              />
+              <View style={styles.inputRow}>
+                <TextInput
+                  label="Restorative %"
+                  value={formData.restorative_sleep_percentage}
+                  onChangeText={(v) => handleInputChange('restorative_sleep_percentage', v)}
+                  keyboardType="numeric"
+                  mode="outlined"
+                  style={[styles.input, { flex: 1, marginRight: 8 }]}
+                />
+                <TextInput
+                  label="Movements"
+                  value={formData.movements}
+                  onChangeText={(v) => handleInputChange('movements', v)}
+                  keyboardType="numeric"
+                  mode="outlined"
+                  style={[styles.input, { flex: 1 }]}
+                />
+              </View>
+              <TextInput
+                label="Tosses & Turns"
+                value={formData.tosses_and_turns}
+                onChangeText={(v) => handleInputChange('tosses_and_turns', v)}
                 keyboardType="numeric"
                 mode="outlined"
                 style={styles.input}

@@ -15,6 +15,9 @@ export interface SleepRecord {
   sleep_score?: number;
   temp_dev?: number;
   recovery_index?: number;
+  restorative_sleep_percentage?: number;
+  movements?: number;
+  tosses_and_turns?: number;
   notes?: string;
 }
 
