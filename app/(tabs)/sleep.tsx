@@ -115,7 +115,8 @@ export default function SleepScreen() {
         rem_sleep_minutes: existing.rem_sleep_minutes?.toString() || '',
         light_minutes: existing.light_minutes?.toString() || '',
         awake_minutes: existing.awake_minutes?.toString() || '',
-        restorative_sleep_percentage: existing.restorative_sleep_percentage?.toString() || '',
+        restorative_sleep_percentage:
+          existing.restorative_sleep_percentage?.toString() || '',
         movements: existing.movements?.toString() || '',
         tosses_and_turns: existing.tosses_and_turns?.toString() || '',
       }));
@@ -371,7 +372,9 @@ export default function SleepScreen() {
                   {h.sleep_score || '-'}
                 </DataTable.Cell>
                 <DataTable.Cell style={{ width: 60 }}>
-                  {h.restorative_sleep_percentage != null ? `${h.restorative_sleep_percentage}%` : '-'}
+                  {h.restorative_sleep_percentage != null
+                    ? `${h.restorative_sleep_percentage}%`
+                    : '-'}
                 </DataTable.Cell>
                 <DataTable.Cell style={{ width: 60 }}>
                   {h.rhr || '-'}
@@ -457,7 +460,9 @@ export default function SleepScreen() {
                 <TextInput
                   label="Restorative %"
                   value={formData.restorative_sleep_percentage}
-                  onChangeText={(v) => handleInputChange('restorative_sleep_percentage', v)}
+                  onChangeText={(v) =>
+                    handleInputChange('restorative_sleep_percentage', v)
+                  }
                   keyboardType="numeric"
                   mode="outlined"
                   style={[styles.input, { flex: 1, marginRight: 8 }]}
