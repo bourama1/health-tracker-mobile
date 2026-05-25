@@ -26,16 +26,18 @@ describe('DashboardScreen', () => {
     mock.reset();
   });
 
-  it('renders summary title', async () => {
+  it('renders health tracker title', async () => {
     mock.onGet('/measurements').reply(200, []);
     mock.onGet('/sleep').reply(200, []);
-    mock.onGet('/workouts/sessions?limit=5').reply(200, []);
-    mock.onGet('/workouts/stats').reply(200, {});
+    mock.onGet('/workouts/sessions?limit=20').reply(200, []);
+    mock.onGet('/workouts/plans').reply(200, []);
+    mock.onGet('/photos/dates').reply(200, []);
+    mock.onGet('/workouts/last-trained-muscles').reply(200, {});
 
     render(wrap(<DashboardScreen />));
 
     await waitFor(() => {
-      expect(screen.getAllByText('Summary')).toBeTruthy();
+      expect(screen.getAllByText('Health Tracker')).toBeTruthy();
     });
   });
 });

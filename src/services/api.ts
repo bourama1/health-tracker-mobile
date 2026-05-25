@@ -83,6 +83,13 @@ export const getWorkoutStats = () => api.get<WorkoutStats>('/workouts/stats');
 export const getLastTrainedMuscles = () =>
   api.get<Record<string, string>>('/workouts/last-trained-muscles');
 
+export const getExercises = (params: any) =>
+  api.get<any[]>('/workouts/exercises', { params });
+export const getExerciseFilters = () =>
+  api.get<any>('/workouts/exercises/filters');
+export const getExerciseDetail = (id: string) =>
+  api.get<any>(`/workouts/exercises/${id}`);
+
 // Photos
 export const getPhotoDates = () => api.get<{ date: string }[]>('/photos/dates');
 export const getPhotosByDate = (date: string) =>
@@ -94,6 +101,10 @@ export const addPhoto = (formData: FormData) =>
       'Content-Type': 'multipart/form-data',
     },
   });
-export const deletePhoto = (id: number) => api.delete(`/photos/${id}`);
+// AI
+export const aiAnalyze = (data: any) =>
+  api.post<{ insights: string }>('/ai/analyze', data);
+export const aiChat = (data: any) =>
+  api.post<{ reply: string }>('/ai/chat', data);
 
 export default api;

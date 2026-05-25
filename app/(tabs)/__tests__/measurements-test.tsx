@@ -23,7 +23,7 @@ describe('MeasurementsScreen', () => {
     render(wrap(<MeasurementsScreen />));
 
     await waitFor(() => {
-      expect(screen.getAllByText('Progress Visualization')).toBeTruthy();
+      expect(screen.getAllByText('Progress Tracker')).toBeTruthy();
     });
   });
 });
