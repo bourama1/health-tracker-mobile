@@ -64,6 +64,7 @@ export interface WorkoutExercise {
   reps_min?: number;
   reps_max?: number;
   order: number;
+  notes?: string;
 }
 
 export interface WorkoutDay {

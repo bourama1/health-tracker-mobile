@@ -46,14 +46,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = async () => {
     try {
       const baseUrl = api.defaults.baseURL?.replace('/api', '');
-      const redirectUrl = Linking.createURL('auth');
+      const redirectUrl = Linking.createURL('/');
       console.log('[Auth] Generated Redirect URL:', redirectUrl);
 
-      const authUrl = `${baseUrl}/api/auth/google?platform=mobile&redirect=${encodeURIComponent(redirectUrl)}`;
-      const result = await WebBrowser.openAuthSessionAsync(
-        authUrl,
+      const authUrl = `${baseUrl}/api/auth/google?platform=mobile&redirect=${encodeURIComponent(
         redirectUrl
-      );
+      )}`;
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUrl);
 
       if (result.type === 'success' && result.url) {
         // Parse the token from the redirect URL

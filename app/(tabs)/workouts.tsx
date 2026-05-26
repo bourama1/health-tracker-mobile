@@ -5,6 +5,8 @@ import {
   View,
   TouchableOpacity,
   Alert,
+  AppState,
+  Platform,
 } from 'react-native';
 import {
   Card,
@@ -25,6 +27,8 @@ import {
   SegmentedButtons,
   useTheme,
 } from 'react-native-paper';
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import {
   getPlans,
   getWorkouts,
@@ -45,6 +49,19 @@ import {
 } from '@/src/services/types';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+// ─── Notification Config ─────────────────────────────────────────────────────
+
+// Only set handler if not in a restricted environment
+if (Platform.OS !== 'web') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
+
 // ─── Rest Timer ──────────────────────────────────────────────────────────────
 
 function RestTimer({
@@ -57,26 +74,75 @@ function RestTimer({
   const [remaining, setRemaining] = useState(seconds);
   const endTimeRef = useRef(Date.now() + seconds * 1000);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const notificationIdRef = useRef<string | null>(null);
+
+  const cleanup = useCallback(async () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    try {
+      if (notificationIdRef.current) {
+        await Notifications.cancelScheduledNotificationAsync(
+          notificationIdRef.current
+        );
+      }
+    } catch (e) {
+      // Ignore errors in Expo Go
+    }
+  }, []);
+
+  const scheduleAlert = useCallback(async () => {
+    // Basic check for Expo Go limitations
+    if (Constants.appOwnership === 'expo') {
+      console.warn('Persistent notifications are limited in Expo Go. Notification may only appear once.');
+    }
+
+    try {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== 'granted') return;
+
+      notificationIdRef.current = await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Rest Over!',
+          body: 'Time for your next set.',
+          sound: true,
+          priority: Notifications.AndroidPriority.MAX,
+        },
+        trigger: {
+          seconds: seconds,
+          type: Notifications.SchedulableNotificationTriggerType.TIME_INTERVAL,
+        },
+      });
+    } catch (e) {
+      console.log('Notification scheduling failed in this environment:', e);
+    }
+  }, [seconds]);
 
   useEffect(() => {
+    scheduleAlert();
+
     const updateTimer = () => {
       const now = Date.now();
       const left = Math.max(0, Math.round((endTimeRef.current - now) / 1000));
       setRemaining(left);
 
       if (left <= 0) {
+        cleanup();
         onDone();
-      } else {
-        timerRef.current = setTimeout(updateTimer, 1000);
       }
     };
 
-    timerRef.current = setTimeout(updateTimer, 1000);
+    timerRef.current = setInterval(updateTimer, 1000);
+
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        updateTimer();
+      }
+    });
 
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      cleanup();
+      subscription.remove();
     };
-  }, [onDone]);
+  }, [onDone, cleanup, scheduleAlert]);
 
   const progress = remaining / seconds;
 
@@ -99,6 +165,11 @@ function RestTimer({
           color="#6200ee"
           style={styles.progressBar}
         />
+        {Constants.appOwnership === 'expo' && (
+          <Text style={{ fontSize: 8, opacity: 0.5, marginTop: 4 }}>
+            * Persistent notification disabled in Expo Go (Requires APK)
+          </Text>
+        )}
       </Card.Content>
     </Card>
   );
@@ -432,6 +503,9 @@ function ActiveWorkout({
                         </Chip>
                       )}
                     </View>
+                    {ex.notes && (
+                      <Text style={styles.exerciseNotes}>{ex.notes}</Text>
+                    )}
                   </View>
                 </View>
 
@@ -1055,7 +1129,13 @@ const styles = StyleSheet.create({
   targetChip: {
     marginRight: 6,
     marginBottom: 4,
-    height: 24,
+  },
+  exerciseNotes: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
+    marginTop: 4,
+    opacity: 0.8,
   },
   table: {
     marginTop: 8,
