@@ -28,6 +28,7 @@ import {
   useTheme,
 } from 'react-native-paper';
 import * as Notifications from 'expo-notifications';
+import { useKeepAwake } from 'expo-keep-awake';
 import Constants from 'expo-constants';
 import {
   getPlans,
@@ -62,6 +63,8 @@ if (Platform.OS !== 'web') {
   });
 }
 
+const TIMER_NOTIFICATION_ID = 'rest-timer-ongoing';
+
 // ─── Rest Timer ──────────────────────────────────────────────────────────────
 
 function RestTimer({
@@ -74,55 +77,82 @@ function RestTimer({
   const [remaining, setRemaining] = useState(seconds);
   const endTimeRef = useRef(Date.now() + seconds * 1000);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const notificationIdRef = useRef<string | null>(null);
+  const finishNotificationIdRef = useRef<string | null>(null);
 
   const cleanup = useCallback(async () => {
     if (timerRef.current) clearInterval(timerRef.current);
     try {
-      if (notificationIdRef.current) {
-        await Notifications.cancelScheduledNotificationAsync(
-          notificationIdRef.current
-        );
+      // Dismiss ongoing notification
+      await Notifications.dismissNotificationAsync(TIMER_NOTIFICATION_ID);
+      // Cancel the final alert
+      if (finishNotificationIdRef.current) {
+        await Notifications.cancelScheduledNotificationAsync(finishNotificationIdRef.current);
       }
     } catch (e) {
       // Ignore errors in Expo Go
     }
   }, []);
 
-  const scheduleAlert = useCallback(async () => {
-    // Basic check for Expo Go limitations
-    if (Constants.appOwnership === 'expo') {
-      console.warn('Persistent notifications are limited in Expo Go. Notification may only appear once.');
+  const updateNotification = useCallback(async (timeLeft: number) => {
+    if (Platform.OS === 'web') return;
+    
+    try {
+      // We update a persistent notification for the countdown
+      // Note: Updating every second might be restricted by OS in deep background
+      await Notifications.scheduleNotificationAsync({
+        identifier: TIMER_NOTIFICATION_ID,
+        content: {
+          title: 'Resting...',
+          body: `Time remaining: ${timeLeft}s`,
+          sticky: true,
+          autoDismiss: false,
+          color: '#6200ee',
+          priority: Notifications.AndroidPriority.LOW,
+        },
+        trigger: null, // show immediately
+      });
+    } catch (e) {
+      console.log('Notification update failed:', e);
     }
+  }, []);
 
+  const scheduleFinalAlert = useCallback(async () => {
     try {
       const { status } = await Notifications.requestPermissionsAsync();
       if (status !== 'granted') return;
 
-      notificationIdRef.current = await Notifications.scheduleNotificationAsync({
+      finishNotificationIdRef.current = await Notifications.scheduleNotificationAsync({
         content: {
           title: 'Rest Over!',
           body: 'Time for your next set.',
           sound: true,
           priority: Notifications.AndroidPriority.MAX,
+          vibrate: [0, 250, 250, 250],
         },
         trigger: {
-          seconds: seconds,
+          seconds: remaining,
           type: Notifications.SchedulableNotificationTriggerType.TIME_INTERVAL,
         },
       });
     } catch (e) {
-      console.log('Notification scheduling failed in this environment:', e);
+      console.log('Final alert scheduling failed:', e);
     }
-  }, [seconds]);
+  }, [remaining]);
 
   useEffect(() => {
-    scheduleAlert();
+    scheduleFinalAlert();
+    updateNotification(remaining);
 
     const updateTimer = () => {
       const now = Date.now();
       const left = Math.max(0, Math.round((endTimeRef.current - now) / 1000));
       setRemaining(left);
+
+      // Update notification every 5 seconds to avoid flooding if in background
+      // or every 1s if foregrounded.
+      if (left % 1 === 0 || left <= 5) {
+        updateNotification(left);
+      }
 
       if (left <= 0) {
         cleanup();
@@ -142,7 +172,7 @@ function RestTimer({
       cleanup();
       subscription.remove();
     };
-  }, [onDone, cleanup, scheduleAlert]);
+  }, [onDone, cleanup, scheduleFinalAlert, updateNotification]);
 
   const progress = remaining / seconds;
 
@@ -165,11 +195,9 @@ function RestTimer({
           color="#6200ee"
           style={styles.progressBar}
         />
-        {Constants.appOwnership === 'expo' && (
-          <Text style={{ fontSize: 8, opacity: 0.5, marginTop: 4 }}>
-            * Persistent notification disabled in Expo Go (Requires APK)
-          </Text>
-        )}
+        <Text style={{ fontSize: 8, opacity: 0.5, marginTop: 4 }}>
+          * Check notification tray for live countdown
+        </Text>
       </Card.Content>
     </Card>
   );
@@ -262,6 +290,7 @@ function ActiveWorkout({
   onSaved: () => void;
   onCancel: () => void;
 }) {
+  useKeepAwake(); // Prevent device from locking while in workout
   const [logs, setLogs] = useState<Record<string, any[]>>({});
   const [prevSession, setPrevSession] = useState<WorkoutSession | null>(null);
   const [restTimer, setRestTimer] = useState<number | null>(null);
@@ -349,7 +378,9 @@ function ActiveWorkout({
     setLogs((prev) => {
       const isCompleted = !prev[exId][setIdx].completed;
       if (isCompleted) {
-        setRestTimer(90);
+        const exercise = day.exercises.find((e) => e.exercise_id === exId);
+        const rest = exercise?.rest_seconds || 90;
+        setRestTimer(rest);
       }
       return {
         ...prev,
