@@ -78,6 +78,7 @@ function RestTimer({
   const endTimeRef = useRef(Date.now() + seconds * 1000);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const finishNotificationIdRef = useRef<string | null>(null);
+  const hasScheduledFinalRef = useRef(false);
 
   const cleanup = useCallback(async () => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -86,7 +87,9 @@ function RestTimer({
       await Notifications.dismissNotificationAsync(TIMER_NOTIFICATION_ID);
       // Cancel the final alert
       if (finishNotificationIdRef.current) {
-        await Notifications.cancelScheduledNotificationAsync(finishNotificationIdRef.current);
+        await Notifications.cancelScheduledNotificationAsync(
+          finishNotificationIdRef.current
+        );
       }
     } catch (e) {
       // Ignore errors in Expo Go
@@ -95,10 +98,9 @@ function RestTimer({
 
   const updateNotification = useCallback(async (timeLeft: number) => {
     if (Platform.OS === 'web') return;
-    
+
     try {
       // We update a persistent notification for the countdown
-      // Note: Updating every second might be restricted by OS in deep background
       await Notifications.scheduleNotificationAsync({
         identifier: TIMER_NOTIFICATION_ID,
         content: {
@@ -117,44 +119,81 @@ function RestTimer({
   }, []);
 
   const scheduleFinalAlert = useCallback(async () => {
+    if (hasScheduledFinalRef.current) return;
+    hasScheduledFinalRef.current = true;
+
     try {
       const { status } = await Notifications.requestPermissionsAsync();
       if (status !== 'granted') return;
 
-      finishNotificationIdRef.current = await Notifications.scheduleNotificationAsync({
-        content: {
-          title: 'Rest Over!',
-          body: 'Time for your next set.',
-          sound: true,
-          priority: Notifications.AndroidPriority.MAX,
-          vibrate: [0, 250, 250, 250],
-        },
-        trigger: {
-          seconds: remaining,
-          type: Notifications.SchedulableNotificationTriggerType.TIME_INTERVAL,
-        },
-      });
+      // On Android, we MUST have a channel for high-priority sound alerts
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('timer-alerts', {
+          name: 'Timer Alerts',
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#FF231F7C',
+          sound: 'default',
+        });
+      }
+
+      finishNotificationIdRef.current = await Notifications.scheduleNotificationAsync(
+        {
+          content: {
+            title: 'Rest Over!',
+            body: 'Time for your next set.',
+            sound: true,
+            priority: Notifications.AndroidPriority.MAX,
+            vibrate: [0, 250, 250, 250],
+            android: {
+              channelId: 'timer-alerts',
+            },
+          },
+          trigger: {
+            seconds: seconds,
+            type: Notifications.SchedulableNotificationTriggerType.TIME_INTERVAL,
+          },
+        }
+      );
     } catch (e) {
       console.log('Final alert scheduling failed:', e);
     }
-  }, [remaining]);
+  }, [seconds]);
 
   useEffect(() => {
+    // Initial calls
     scheduleFinalAlert();
-    updateNotification(remaining);
+    updateNotification(seconds);
 
     const updateTimer = () => {
       const now = Date.now();
       const left = Math.max(0, Math.round((endTimeRef.current - now) / 1000));
-      setRemaining(left);
-
-      // Update notification every 5 seconds to avoid flooding if in background
-      // or every 1s if foregrounded.
-      if (left % 1 === 0 || left <= 5) {
-        updateNotification(left);
-      }
+      setRemaining((prev) => {
+        // Only update state if value actually changed
+        if (prev === left) return prev;
+        
+        // Update notification every 5 seconds or when near end
+        if (left % 5 === 0 || left <= 5) {
+          updateNotification(left);
+        }
+        return left;
+      });
 
       if (left <= 0) {
+        // Trigger alarm sound immediately in foreground
+        if (Platform.OS !== 'web') {
+          Notifications.scheduleNotificationAsync({
+            content: {
+              title: 'Rest Over!',
+              body: 'Time for your next set.',
+              sound: true,
+              android: {
+                channelId: 'timer-alerts',
+              },
+            },
+            trigger: null,
+          }).catch(() => {});
+        }
         cleanup();
         onDone();
       }
@@ -164,6 +203,7 @@ function RestTimer({
 
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (nextAppState === 'active') {
+        // Force sync time when returning to app
         updateTimer();
       }
     });
@@ -172,7 +212,7 @@ function RestTimer({
       cleanup();
       subscription.remove();
     };
-  }, [onDone, cleanup, scheduleFinalAlert, updateNotification]);
+  }, [seconds, onDone, cleanup, scheduleFinalAlert, updateNotification]);
 
   const progress = remaining / seconds;
 
