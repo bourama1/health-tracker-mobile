@@ -7,6 +7,7 @@ import {
   Alert,
   AppState,
   Platform,
+  Vibration,
 } from 'react-native';
 import {
   Card,
@@ -109,7 +110,7 @@ function RestTimer({
           sticky: true,
           autoDismiss: false,
           color: '#6200ee',
-          priority: Notifications.AndroidPriority.LOW,
+          priority: Notifications.AndroidPriority.DEFAULT, // Increased from LOW
         },
         trigger: null, // show immediately
       });
@@ -131,9 +132,11 @@ function RestTimer({
         await Notifications.setNotificationChannelAsync('timer-alerts', {
           name: 'Timer Alerts',
           importance: Notifications.AndroidImportance.MAX,
-          vibrationPattern: [0, 250, 250, 250],
+          vibrationPattern: [0, 500, 200, 500, 200, 500, 200, 500], // Longer vibration pattern
           lightColor: '#FF231F7C',
           sound: 'default',
+          lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+          bypassDnd: true,
         });
       }
 
@@ -144,7 +147,7 @@ function RestTimer({
             body: 'Time for your next set.',
             sound: true,
             priority: Notifications.AndroidPriority.MAX,
-            vibrate: [0, 250, 250, 250],
+            vibrate: [0, 500, 200, 500, 200, 500, 200, 500],
             android: {
               channelId: 'timer-alerts',
             },
@@ -172,16 +175,18 @@ function RestTimer({
         // Only update state if value actually changed
         if (prev === left) return prev;
         
-        // Update notification every 5 seconds or when near end
-        if (left % 5 === 0 || left <= 5) {
-          updateNotification(left);
-        }
+        // Update notification every second for a real-time countdown as requested
+        updateNotification(left);
+        
         return left;
       });
 
       if (left <= 0) {
         // Trigger alarm sound immediately in foreground
         if (Platform.OS !== 'web') {
+          // Vibrate the phone strongly
+          Vibration.vibrate([0, 500, 200, 500, 200, 500, 200, 500], false);
+          
           Notifications.scheduleNotificationAsync({
             content: {
               title: 'Rest Over!',
@@ -347,6 +352,7 @@ function ActiveWorkout({
         reps: ex.reps ? ex.reps.toString() : '',
         rpe: '',
         notes: '',
+        tempo: ex.tempo || '',
         completed: false,
       }));
     });
@@ -380,6 +386,7 @@ function ActiveWorkout({
                   (ex.reps ? ex.reps.toString() : ''),
                 rpe: perf[i]?.rpe?.toString() ?? '',
                 notes: perf[i]?.notes ?? '',
+                tempo: perf[i]?.tempo ?? (ex.tempo || ''),
                 completed: false,
               })
             );
@@ -436,7 +443,14 @@ function ActiveWorkout({
       ...prev,
       [exId]: [
         ...prev[exId],
-        { weight: '', reps: '', rpe: '', notes: '', completed: false },
+        {
+          weight: '',
+          reps: '',
+          rpe: '',
+          notes: '',
+          tempo: '',
+          completed: false,
+        },
       ],
     }));
   };
@@ -452,7 +466,7 @@ function ActiveWorkout({
     const flatLogs: any[] = [];
     Object.keys(logs).forEach((exId) => {
       logs[exId].forEach((set, i) => {
-        if (set.weight !== '' || set.reps !== '') {
+        if (set.weight !== '' || set.reps !== '' || set.tempo !== '') {
           flatLogs.push({
             exercise_id: exId,
             set_number: i + 1,
@@ -460,6 +474,7 @@ function ActiveWorkout({
             reps: set.reps !== '' ? parseInt(set.reps) : null,
             rpe: set.rpe !== '' ? parseFloat(set.rpe) : null,
             notes: set.notes || null,
+            tempo: set.tempo || null,
           });
         }
       });
@@ -486,6 +501,8 @@ function ActiveWorkout({
           weight:
             firstSet.weight !== '' ? parseFloat(firstSet.weight) : ex.weight,
           reps: firstSet.reps !== '' ? parseInt(firstSet.reps) : ex.reps,
+          tempo: firstSet.tempo || ex.tempo,
+          notes: firstSet.notes || ex.notes,
         };
       });
 
@@ -494,7 +511,9 @@ function ActiveWorkout({
         return (
           ex.sets !== orig.sets ||
           ex.weight !== orig.weight ||
-          ex.reps !== orig.reps
+          ex.reps !== orig.reps ||
+          ex.tempo !== orig.tempo ||
+          ex.notes !== orig.notes
         );
       });
 
@@ -562,6 +581,39 @@ function ActiveWorkout({
                           {ex.reps_max ? `-${ex.reps_max}` : ''}
                         </Chip>
                       )}
+                      {ex.target_rpe && (
+                        <Chip
+                          style={[
+                            styles.targetChip,
+                            { backgroundColor: '#fff3e0' },
+                          ]}
+                          compact
+                        >
+                          RPE: {ex.target_rpe}
+                        </Chip>
+                      )}
+                      {ex.tempo && (
+                        <Chip
+                          style={[
+                            styles.targetChip,
+                            { backgroundColor: '#f3e5f5' },
+                          ]}
+                          compact
+                        >
+                          Tempo: {ex.tempo}
+                        </Chip>
+                      )}
+                      {ex.rest_seconds && (
+                        <Chip
+                          style={[
+                            styles.targetChip,
+                            { backgroundColor: '#f1f8e9' },
+                          ]}
+                          compact
+                        >
+                          Rest: {ex.rest_seconds}s
+                        </Chip>
+                      )}
                       {suggestion?.suggested_weight && (
                         <Chip
                           style={[
@@ -596,6 +648,12 @@ function ActiveWorkout({
                     </Text>
                     <Text style={[styles.tableHeaderText, { flex: 0.8 }]}>
                       RPE
+                    </Text>
+                    <Text style={[styles.tableHeaderText, { flex: 0.8 }]}>
+                      Tempo
+                    </Text>
+                    <Text style={[styles.tableHeaderText, { flex: 1 }]}>
+                      Note
                     </Text>
                     <View style={{ width: 30 }} />
                   </View>
@@ -660,6 +718,22 @@ function ActiveWorkout({
                           value={set.rpe}
                           onChangeText={(v) =>
                             handleChange(ex.exercise_id, i, 'rpe', v)
+                          }
+                        />
+                        <TextInput
+                          style={[styles.input, { flex: 0.8 }]}
+                          dense
+                          value={set.tempo}
+                          onChangeText={(v) =>
+                            handleChange(ex.exercise_id, i, 'tempo', v)
+                          }
+                        />
+                        <TextInput
+                          style={[styles.input, { flex: 1 }]}
+                          dense
+                          value={set.notes}
+                          onChangeText={(v) =>
+                            handleChange(ex.exercise_id, i, 'notes', v)
                           }
                         />
 
@@ -1253,7 +1327,7 @@ const styles = StyleSheet.create({
   input: {
     height: 35,
     marginHorizontal: 2,
-    fontSize: 13,
+    fontSize: 11,
     backgroundColor: 'transparent',
   },
   sessionNotes: {

@@ -58,6 +58,13 @@ export default function PlanBuilderScreen() {
       sets: 3,
       reps: 10,
       weight: 0,
+      exercise_type: 'weighted',
+      target_rpe: 8,
+      reps_min: null,
+      reps_max: null,
+      notes: '',
+      rest_seconds: 90,
+      tempo: '',
     });
     setDays(newDays);
     setLibraryVisible(false);
@@ -172,6 +179,79 @@ export default function PlanBuilderScreen() {
                         style={styles.smallInput}
                         dense
                       />
+                      <TextInput
+                        label="kg"
+                        value={ex.weight?.toString()}
+                        onChangeText={(v) =>
+                          updateExercise(dIdx, eIdx, 'weight', parseFloat(v) || 0)
+                        }
+                        keyboardType="numeric"
+                        style={styles.smallInput}
+                        dense
+                      />
+                    </View>
+                    <View style={[styles.exInputRow, { marginTop: 4 }]}>
+                      <TextInput
+                        label="Min"
+                        value={ex.reps_min?.toString() || ''}
+                        onChangeText={(v) =>
+                          updateExercise(dIdx, eIdx, 'reps_min', parseInt(v) || null)
+                        }
+                        keyboardType="numeric"
+                        style={styles.tinyInput}
+                        dense
+                      />
+                      <TextInput
+                        label="Max"
+                        value={ex.reps_max?.toString() || ''}
+                        onChangeText={(v) =>
+                          updateExercise(dIdx, eIdx, 'reps_max', parseInt(v) || null)
+                        }
+                        keyboardType="numeric"
+                        style={styles.tinyInput}
+                        dense
+                      />
+                      <TextInput
+                        label="RPE"
+                        value={ex.target_rpe?.toString() || ''}
+                        onChangeText={(v) =>
+                          updateExercise(dIdx, eIdx, 'target_rpe', parseFloat(v) || null)
+                        }
+                        keyboardType="numeric"
+                        style={styles.tinyInput}
+                        dense
+                      />
+                      <TextInput
+                        label="Rest(s)"
+                        value={ex.rest_seconds?.toString() || ''}
+                        onChangeText={(v) =>
+                          updateExercise(dIdx, eIdx, 'rest_seconds', parseInt(v) || 0)
+                        }
+                        keyboardType="numeric"
+                        style={styles.tinyInput}
+                        dense
+                      />
+                    </View>
+                    <View style={[styles.exInputRow, { marginTop: 4 }]}>
+                      <TextInput
+                        label="Tempo"
+                        value={ex.tempo || ''}
+                        onChangeText={(v) =>
+                          updateExercise(dIdx, eIdx, 'tempo', v)
+                        }
+                        style={[styles.smallInput, { flex: 1 }]}
+                        dense
+                        placeholder="3010"
+                      />
+                      <TextInput
+                        label="Notes"
+                        value={ex.notes || ''}
+                        onChangeText={(v) =>
+                          updateExercise(dIdx, eIdx, 'notes', v)
+                        }
+                        style={[styles.smallInput, { flex: 2 }]}
+                        dense
+                      />
                     </View>
                   </View>
                   <IconButton
@@ -279,6 +359,12 @@ const styles = StyleSheet.create({
     height: 40,
     backgroundColor: 'transparent',
     fontSize: 12,
+  },
+  tinyInput: {
+    width: 50,
+    height: 40,
+    backgroundColor: 'transparent',
+    fontSize: 10,
   },
   saveButton: {
     marginTop: 24,
