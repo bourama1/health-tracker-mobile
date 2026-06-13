@@ -39,8 +39,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.bourama1.healthtracker",
-      "softwareKeyboardLayoutMode": "pan",
-      "playStoreRootCategories": ["HEALTH_AND_FITNESS"]
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "bundler": "metro",

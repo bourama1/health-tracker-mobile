@@ -286,6 +286,7 @@ export default function PlanBuilderScreen() {
         </Button>
         <View style={{ height: 40 }} />
       </ScrollView>
+      </View>
 
       <Portal>
         <Modal
