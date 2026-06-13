@@ -1,29 +1,46 @@
 {
   "expo": {
-    "name": "health-tracker-mobile",
+    "name": "Health Tracker",
     "slug": "health-tracker-mobile",
-    "version": "1.0.0",
+    "version": "1.1.0",
+    "description": "Comprehensive fitness and health tracking app with workout plans, body measurements, and sleep analysis.",
+    "owner": "bourama1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "healthtrackermobile",
+    "scheme": "healthtracker",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#6200ee"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bourama1.healthtracker",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to take progress photos.",
+        "NSPhotoLibraryUsageDescription": "This app uses the photo library to save and view progress photos."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#6200ee"
       },
+      "intentFilters": [],
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "VIBRATE",
+        "NOTIFICATIONS"
+      ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.bourama1.healthtrackermobile"
+      "package": "com.bourama1.healthtracker",
+      "softwareKeyboardLayoutMode": "pan",
+      "playStoreRootCategories": ["HEALTH_AND_FITNESS"]
     },
     "web": {
       "bundler": "metro",

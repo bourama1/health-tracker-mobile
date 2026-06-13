@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, ScrollView, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import {
   Text,
   TextInput,
@@ -107,9 +107,13 @@ export default function PlanBuilderScreen() {
   };
 
   return (
-    <View
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={{ flex: 1 }}
     >
+      <View
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
+      >
       <ScrollView>
         <TextInput
           label="Plan Name"
@@ -302,7 +306,7 @@ export default function PlanBuilderScreen() {
           </View>
         </Modal>
       </Portal>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

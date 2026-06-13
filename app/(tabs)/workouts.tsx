@@ -8,6 +8,8 @@ import {
   AppState,
   Platform,
   Vibration,
+  RefreshControl,
+  KeyboardAvoidingView,
 } from 'react-native';
 import {
   Card,
@@ -30,6 +32,7 @@ import {
 } from 'react-native-paper';
 import * as Notifications from 'expo-notifications';
 import { useKeepAwake } from 'expo-keep-awake';
+import { Audio } from 'expo-av';
 import Constants from 'expo-constants';
 import {
   getPlans,
@@ -78,79 +81,118 @@ function RestTimer({
   const [remaining, setRemaining] = useState(seconds);
   const endTimeRef = useRef(Date.now() + seconds * 1000);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const soundRef = useRef<Audio.Sound | null>(null);
   const finishNotificationIdRef = useRef<string | null>(null);
-  const hasScheduledFinalRef = useRef(false);
+  const [alarmActive, setAlarmActive] = useState(false);
 
   const cleanup = useCallback(async () => {
     if (timerRef.current) clearInterval(timerRef.current);
+    Vibration.cancel();
+    if (soundRef.current) {
+      try {
+        await soundRef.current.stopAsync();
+        await soundRef.current.unloadAsync();
+      } catch (e) {}
+      soundRef.current = null;
+    }
     try {
-      // Dismiss ongoing notification
       await Notifications.dismissNotificationAsync(TIMER_NOTIFICATION_ID);
-      // Cancel the final alert
       if (finishNotificationIdRef.current) {
         await Notifications.cancelScheduledNotificationAsync(
           finishNotificationIdRef.current
         );
       }
-    } catch (e) {
-      // Ignore errors in Expo Go
-    }
+    } catch (e) {}
   }, []);
 
-  const updateNotification = useCallback(async (timeLeft: number) => {
-    if (Platform.OS === 'web') return;
+  const playAlarm = useCallback(async () => {
+    if (alarmActive || Platform.OS === 'web') return;
+    setAlarmActive(true);
 
-    try {
-      // We update a persistent notification for the countdown
-      await Notifications.scheduleNotificationAsync({
-        identifier: TIMER_NOTIFICATION_ID,
-        content: {
-          title: 'Resting...',
-          body: `Time remaining: ${timeLeft}s`,
-          sticky: true,
-          autoDismiss: false,
-          color: '#6200ee',
-          priority: Notifications.AndroidPriority.DEFAULT, // Increased from LOW
+    // Vibrate repeatedly (pattern, repeat=true)
+    Vibration.vibrate([0, 500, 200, 500], true);
+
+    if (soundRef.current) {
+      try {
+        await soundRef.current.setIsLoopingAsync(true);
+        await soundRef.current.playAsync();
+      } catch (e) {
+        console.log('Alarm sound play failed', e);
+      }
+    }
+
+    Alert.alert(
+      'Rest Over!',
+      'Time for your next set.',
+      [
+        {
+          text: 'Dismiss',
+          onPress: async () => {
+            await cleanup();
+            onDone();
+          },
         },
-        trigger: null, // show immediately
-      });
-    } catch (e) {
-      console.log('Notification update failed:', e);
-    }
-  }, []);
+      ],
+      { cancelable: false }
+    );
+  }, [alarmActive, onDone, cleanup]);
 
-  const scheduleFinalAlert = useCallback(async () => {
-    if (hasScheduledFinalRef.current) return;
-    hasScheduledFinalRef.current = true;
+  useEffect(() => {
+    async function initTimer() {
+      if (Platform.OS === 'web') return;
 
-    try {
+      // 1. Request permissions
       const { status } = await Notifications.requestPermissionsAsync();
       if (status !== 'granted') return;
 
-      // On Android, we MUST have a channel for high-priority sound alerts
+      // 2. Setup Android Channels
       if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync('timer-alerts', {
           name: 'Timer Alerts',
           importance: Notifications.AndroidImportance.MAX,
-          vibrationPattern: [0, 500, 200, 500, 200, 500, 200, 500], // Longer vibration pattern
-          lightColor: '#FF231F7C',
+          vibrationPattern: [0, 500, 200, 500, 200, 500],
           sound: 'default',
-          lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
           bypassDnd: true,
+          lockscreenVisibility:
+            Notifications.AndroidNotificationVisibility.PUBLIC,
+        });
+        await Notifications.setNotificationChannelAsync('timer-updates', {
+          name: 'Timer Updates',
+          importance: Notifications.AndroidImportance.LOW,
+          showBadge: false,
         });
       }
 
+      // 3. Ongoing Notification (with native Chronometer for reliable background countdown)
+      await Notifications.scheduleNotificationAsync({
+        identifier: TIMER_NOTIFICATION_ID,
+        content: {
+          title: 'Resting...',
+          body:
+            Platform.OS === 'android'
+              ? 'Countdown in progress'
+              : `Time left: ${seconds}s`,
+          sticky: true,
+          color: '#6200ee',
+          android: {
+            channelId: 'timer-updates',
+            showChronometer: true,
+            when: endTimeRef.current,
+            chronometerCountDown: true,
+            ongoing: true,
+          },
+        },
+        trigger: null,
+      });
+
+      // 4. Background Finish Alert (System-handled)
       finishNotificationIdRef.current = await Notifications.scheduleNotificationAsync(
         {
           content: {
             title: 'Rest Over!',
             body: 'Time for your next set.',
             sound: true,
-            priority: Notifications.AndroidPriority.MAX,
-            vibrate: [0, 500, 200, 500, 200, 500, 200, 500],
-            android: {
-              channelId: 'timer-alerts',
-            },
+            android: { channelId: 'timer-alerts' },
           },
           trigger: {
             seconds: seconds,
@@ -158,49 +200,28 @@ function RestTimer({
           },
         }
       );
-    } catch (e) {
-      console.log('Final alert scheduling failed:', e);
-    }
-  }, [seconds]);
 
-  useEffect(() => {
-    // Initial calls
-    scheduleFinalAlert();
-    updateNotification(seconds);
+      // 5. Load Alarm Sound for foreground use
+      try {
+        const { sound } = await Audio.Sound.createAsync({
+          uri: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3',
+        });
+        soundRef.current = sound;
+      } catch (e) {
+        console.log('Sound load failed', e);
+      }
+    }
+
+    initTimer();
 
     const updateTimer = () => {
       const now = Date.now();
       const left = Math.max(0, Math.round((endTimeRef.current - now) / 1000));
-      setRemaining((prev) => {
-        // Only update state if value actually changed
-        if (prev === left) return prev;
-        
-        // Update notification every second for a real-time countdown as requested
-        updateNotification(left);
-        
-        return left;
-      });
+      setRemaining(left);
 
       if (left <= 0) {
-        // Trigger alarm sound immediately in foreground
-        if (Platform.OS !== 'web') {
-          // Vibrate the phone strongly
-          Vibration.vibrate([0, 500, 200, 500, 200, 500, 200, 500], false);
-          
-          Notifications.scheduleNotificationAsync({
-            content: {
-              title: 'Rest Over!',
-              body: 'Time for your next set.',
-              sound: true,
-              android: {
-                channelId: 'timer-alerts',
-              },
-            },
-            trigger: null,
-          }).catch(() => {});
-        }
-        cleanup();
-        onDone();
+        if (timerRef.current) clearInterval(timerRef.current);
+        playAlarm();
       }
     };
 
@@ -208,16 +229,18 @@ function RestTimer({
 
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (nextAppState === 'active') {
-        // Force sync time when returning to app
         updateTimer();
       }
     });
 
     return () => {
-      cleanup();
       subscription.remove();
+      // We don't call cleanup() here if alarm is active to let it keep ringing
+      if (!endTimeRef.current || Date.now() < endTimeRef.current) {
+        if (timerRef.current) clearInterval(timerRef.current);
+      }
     };
-  }, [seconds, onDone, cleanup, scheduleFinalAlert, updateNotification]);
+  }, [seconds, playAlarm]);
 
   const progress = remaining / seconds;
 
@@ -231,7 +254,14 @@ function RestTimer({
             color="#6200ee"
           />
           <Text style={styles.timerText}>Rest Timer: {remaining}s</Text>
-          <Button mode="text" onPress={onDone} compact>
+          <Button
+            mode="text"
+            onPress={async () => {
+              await cleanup();
+              onDone();
+            }}
+            compact
+          >
             Skip
           </Button>
         </View>
@@ -241,7 +271,7 @@ function RestTimer({
           style={styles.progressBar}
         />
         <Text style={{ fontSize: 8, opacity: 0.5, marginTop: 4 }}>
-          * Check notification tray for live countdown
+          * Native countdown active in notification tray
         </Text>
       </Card.Content>
     </Card>
@@ -547,7 +577,10 @@ function ActiveWorkout({
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={{ flex: 1 }}
+    >
       <ScrollView style={styles.container}>
         <View style={styles.header}>
           <Title style={{ color: '#6200ee' }}>
@@ -778,7 +811,20 @@ function ActiveWorkout({
           >
             Finish & Save
           </Button>
-          <Button mode="outlined" onPress={onCancel} style={{ flex: 1 }}>
+          <Button
+            mode="outlined"
+            onPress={() => {
+              Alert.alert(
+                'Cancel Workout?',
+                'All progress for this session will be lost.',
+                [
+                  { text: 'Keep Going', style: 'cancel' },
+                  { text: 'Yes, Cancel', style: 'destructive', onPress: onCancel },
+                ]
+              );
+            }}
+            style={{ flex: 1 }}
+          >
             Cancel
           </Button>
         </View>
@@ -799,7 +845,7 @@ function ActiveWorkout({
           </Dialog.Actions>
         </Dialog>
       </Portal>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -808,22 +854,43 @@ function ActiveWorkout({
 function HistoryPanel() {
   const [history, setHistory] = useState<WorkoutSession[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    getWorkouts(30)
-      .then((res) => {
-        const sorted = res.data.sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
-        setHistory(sorted);
-      })
-      .finally(() => setLoading(false));
+  const fetchHistory = useCallback(async () => {
+    try {
+      const res = await getWorkouts(30);
+      const sorted = res.data.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      setHistory(sorted);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, []);
 
-  if (loading) return <ActivityIndicator style={{ marginTop: 20 }} />;
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
+
+  if (loading && !refreshing)
+    return <ActivityIndicator style={{ marginTop: 20 }} />;
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={() => {
+            setRefreshing(true);
+            fetchHistory();
+          }}
+        />
+      }
+    >
       {history.length === 0 && (
         <Text style={{ textAlign: 'center', marginTop: 20, color: '#666' }}>
           No history yet.
@@ -1038,7 +1105,19 @@ export default function WorkoutsScreen() {
       </View>
 
       {tab === 'start' && (
-        <ScrollView style={styles.container}>
+        <ScrollView
+          style={styles.container}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={async () => {
+                setRefreshing(true);
+                await fetchData();
+                setRefreshing(false);
+              }}
+            />
+          }
+        >
           <Title
             style={[styles.mainTitle, { color: theme.colors.onBackground }]}
           >
