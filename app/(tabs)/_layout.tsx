@@ -80,6 +80,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="camera" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="mental-health"
+        options={{
+          title: 'Mental',
+          tabBarIcon: ({ color }) => <TabBarIcon name="heart" color={color} />,
+        }}
+      />
     </Tabs>
   );
 }

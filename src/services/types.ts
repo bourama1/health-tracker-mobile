@@ -131,6 +131,18 @@ export interface ExerciseSuggestion {
   last_session_logs?: any[];
 }
 
+export interface MentalHealthEntry {
+  id: number;
+  user_id: string;
+  date: string;
+  energy: number;
+  mood: number;
+  composure: number;
+  physicality: number;
+  connectivity: number;
+  notes?: string;
+}
+
 export interface WorkoutStats {
   totalSessions: number;
   totalSets: number;

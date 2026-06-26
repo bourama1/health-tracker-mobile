@@ -29,6 +29,7 @@ import {
   getPlans,
   getPhotoDates,
   getLastTrainedMuscles,
+  getMentalHealthEntries,
   syncGoogleFitSleep,
   syncUltrahuman,
   addMeasurement,
@@ -38,6 +39,7 @@ import {
   SleepRecord,
   WorkoutSession,
   WorkoutPlan,
+  MentalHealthEntry,
 } from '@/src/services/types';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -55,6 +57,7 @@ export default function DashboardScreen() {
     sessions: [],
     photoDates: [],
     lastTrainedMuscles: {},
+    mentalHealth: [],
   });
   const [plans, setPlans] = useState<WorkoutPlan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,13 +73,14 @@ export default function DashboardScreen() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [mRes, sRes, wRes, pRes, phRes, ltRes] = await Promise.all([
+      const [mRes, sRes, wRes, pRes, phRes, ltRes, mhRes] = await Promise.all([
         getMeasurements(),
         getSleepRecords(),
         getWorkouts(20),
         getPlans(),
         getPhotoDates(),
         getLastTrainedMuscles(),
+        getMentalHealthEntries(),
       ]);
       setAllData({
         measurements: mRes.data,
@@ -84,6 +88,7 @@ export default function DashboardScreen() {
         sessions: wRes.data,
         photoDates: phRes.data.map((d: any) => d.date),
         lastTrainedMuscles: ltRes.data,
+        mentalHealth: mhRes.data,
       });
       setPlans(pRes.data);
     } catch (error) {
@@ -108,6 +113,7 @@ export default function DashboardScreen() {
     const weight = allData.measurements.find((m: any) => m.date === activeDate);
     const workout = allData.sessions.find((w: any) => w.date === activeDate);
     const hasPhotos = allData.photoDates.includes(activeDate);
+    const mentalHealth = allData.mentalHealth.find((m: any) => m.date === activeDate);
 
     // Muscle Heatmap Data for the specific workout
     const heatmap: any[] = [];
@@ -126,7 +132,7 @@ export default function DashboardScreen() {
       });
     }
 
-    return { sleep, weight, workout, hasPhotos, heatmap };
+    return { sleep, weight, workout, hasPhotos, heatmap, mentalHealth };
   }, [allData, activeDate]);
 
   const handleQuickWeight = async () => {
@@ -202,6 +208,37 @@ export default function DashboardScreen() {
           </Card.Content>
         </Card>
       </View>
+
+      {/* Mental Health Section */}
+      {activeData.mentalHealth && (
+        <Card style={styles.heatmapCard}>
+          <Card.Content>
+            <View style={styles.heatmapHeader}>
+              <MaterialCommunityIcons name="heart-pulse" size={20} color="#9c27b0" />
+              <Title style={{ fontSize: 16, marginLeft: 8 }}>Mental Health</Title>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 8 }}>
+              {[
+                { key: 'energy', label: 'Energy' },
+                { key: 'mood', label: 'Mood' },
+                { key: 'composure', label: 'Composure' },
+                { key: 'physicality', label: 'Physicality' },
+                { key: 'connectivity', label: 'Connectivity' },
+              ].map((m) => {
+                const val = activeData.mentalHealth[m.key];
+                const label = val === -1 ? 'Low' : val === 1 ? 'High' : 'Balanced';
+                const color = val === -1 ? '#f44336' : val === 1 ? '#ff9800' : '#4caf50';
+                return (
+                  <View key={m.key} style={{ alignItems: 'center' }}>
+                    <Text style={{ fontSize: 10, opacity: 0.6 }}>{m.label}</Text>
+                    <Text style={{ fontSize: 14, fontWeight: 'bold', color }}>{label}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          </Card.Content>
+        </Card>
+      )}
 
       {/* Muscle Heatmap Section */}
       <Card style={styles.heatmapCard}>

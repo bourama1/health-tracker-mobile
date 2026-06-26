@@ -107,4 +107,11 @@ export const aiAnalyze = (data: any) =>
 export const aiChat = (data: any) =>
   api.post<{ reply: string }>('/ai/chat', data);
 
+// Mental Health
+export const getMentalHealthEntries = () => api.get<any[]>('/mental-health');
+export const addMentalHealthEntry = (data: any) =>
+  api.post<any>('/mental-health', data);
+export const deleteMentalHealthEntry = (id: number) =>
+  api.delete(`/mental-health/${id}`);
+
 export default api;
