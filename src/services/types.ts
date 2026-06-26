@@ -143,6 +143,34 @@ export interface MentalHealthEntry {
   notes?: string;
 }
 
+export interface NutritionEntry {
+  id: number;
+  user_id: string;
+  date: string;
+  meal_name: string;
+  food_name: string;
+  energy_value: number;
+  protein: number;
+  carbohydrates: number;
+  fat: number;
+  fiber: number;
+  sugar: number;
+  serving_size: number;
+  serving_unit: string;
+}
+
+export interface DiarySummary {
+  id: number;
+  user_id: string;
+  date: string;
+  calories: number;
+  protein: number;
+  carbohydrates: number;
+  fat: number;
+  fiber: number;
+  sugar: number;
+}
+
 export interface WorkoutStats {
   totalSessions: number;
   totalSets: number;

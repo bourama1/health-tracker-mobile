@@ -114,4 +114,13 @@ export const addMentalHealthEntry = (data: any) =>
 export const deleteMentalHealthEntry = (id: number) =>
   api.delete(`/mental-health/${id}`);
 
+// Nutrition
+export const getNutritionDiary = (from: string, to: string) =>
+  api.get<{ items: any[] }>(`/nutrition/diary?from=${from}&to=${to}`);
+export const getNutritionSummary = () => api.get<any[]>('/nutrition/summary');
+export const addNutritionMeal = (data: any) =>
+  api.post<any>('/nutrition/diary', data);
+export const deleteNutritionMeal = (id: number) =>
+  api.delete(`/nutrition/diary/${id}`);
+
 export default api;

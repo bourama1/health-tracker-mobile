@@ -87,6 +87,15 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="heart" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="nutrition"
+        options={{
+          title: 'Nutrition',
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="cutlery" color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
