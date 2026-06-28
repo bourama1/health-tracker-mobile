@@ -10,7 +10,7 @@ import {
   WorkoutStats,
 } from './types';
 
-const API_BASE_URL = 'https://game-inspired-gar.ngrok-free.app/api'; // Static ngrok address
+const API_BASE_URL = 'https://health-tracker-mb.duckdns.org/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
