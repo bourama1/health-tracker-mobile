@@ -96,6 +96,15 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="stat-builder"
+        options={{
+          title: 'Stats',
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="trophy" color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

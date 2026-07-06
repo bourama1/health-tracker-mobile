@@ -12,21 +12,17 @@ import {
   Text,
   TextInput,
   Button,
-  Portal,
-  Dialog,
-  DataTable,
-  IconButton,
-  useTheme,
   Chip,
+  useTheme,
   SegmentedButtons,
 } from 'react-native-paper';
 import { LineChart } from 'react-native-chart-kit';
 import {
   getMentalHealthEntries,
   addMentalHealthEntry,
-  deleteMentalHealthEntry,
+  getAllJournalEntries,
+  saveJournalEntry,
 } from '@/src/services/api';
-import { MentalHealthEntry } from '@/src/services/types';
 import { Dimensions } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -39,26 +35,23 @@ const metrics = [
   { key: 'connectivity', label: 'Connectivity', color: '#e91e63' },
 ];
 
-const metricDescriptions: Record<string, { low: string; balanced: string; high: string }> = {
-  energy: { low: 'Lethargic, unmotivated', balanced: 'Bright, focused, consistent', high: 'Irrational, inefficient, distracted' },
-  mood: { low: 'Depressed, irritable', balanced: 'Happy, content, stable', high: 'Inflated, obsessive' },
-  composure: { low: 'Anxious, hyper-reactive', balanced: 'Stable, responsive', high: 'Careless, alienating' },
-  physicality: { low: 'Tired, tense, slow', balanced: 'Relaxed, energized', high: 'Stressed, at risk of burnout' },
-  connectivity: { low: 'Negative, lonely', balanced: 'Sociable, affectionate', high: 'Over-extended, codependent' },
-};
-
 const valueLabel = (val: number | null) => {
   if (val === -1) return 'Low';
   if (val === 1) return 'High';
   return 'Balanced';
 };
 
+const helmPrompts = [
+  { key: 'prompt1' as const, question: 'How are you feeling? Why do you think that is? If you don\'t know, make two guesses.' },
+  { key: 'prompt2' as const, question: 'What are you thinking about? Write at least three sentences about a current problem, a new idea, or what you are currently grateful for.' },
+  { key: 'prompt3' as const, question: 'What action steps can you take now? Where are you going next and what will you be doing before your next journal entry?' },
+];
+
 export default function MentalHealthScreen() {
   const theme = useTheme();
   const [entries, setEntries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMetric, setSelectedMetric] = useState('energy');
-  const [dialogVisible, setDialogVisible] = useState(false);
   const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
   const [formValues, setFormValues] = useState<Record<string, number | null>>({
     energy: null,
@@ -68,6 +61,9 @@ export default function MentalHealthScreen() {
     connectivity: null,
   });
   const [formNotes, setFormNotes] = useState('');
+  const [journalPrompts, setJournalPrompts] = useState({ prompt1: '', prompt2: '', prompt3: '', prompt4: '' });
+  const [journalEntries, setJournalEntries] = useState<any[]>([]);
+  const [journalLoading, setJournalLoading] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -84,6 +80,22 @@ export default function MentalHealthScreen() {
     fetchData();
   }, [fetchData]);
 
+  const fetchJournal = useCallback(async () => {
+    setJournalLoading(true);
+    try {
+      const res = await getAllJournalEntries();
+      setJournalEntries(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setJournalLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchJournal();
+  }, [fetchJournal]);
+
   const handleSave = async () => {
     try {
       await addMentalHealthEntry({
@@ -91,35 +103,17 @@ export default function MentalHealthScreen() {
         ...formValues,
         notes: formNotes,
       });
-      setDialogVisible(false);
-      setFormValues({ energy: null, mood: null, composure: null, physicality: null, connectivity: null });
-      setFormNotes('');
+      await saveJournalEntry({
+        date: formDate,
+        ...journalPrompts,
+      });
       fetchData();
+      fetchJournal();
+      Alert.alert('Saved', 'Check-in saved!');
     } catch (err) {
       console.error(err);
-      Alert.alert('Error', 'Failed to save entry');
+      Alert.alert('Error', 'Failed to save check-in');
     }
-  };
-
-  const handleDelete = (id: number) => {
-    Alert.alert('Delete', 'Delete this entry?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
-        try {
-          await deleteMentalHealthEntry(id);
-          fetchData();
-        } catch (err) {
-          console.error(err);
-        }
-      }},
-    ]);
-  };
-
-  const openDialog = () => {
-    setFormDate(new Date().toISOString().split('T')[0]);
-    setFormValues({ energy: null, mood: null, composure: null, physicality: null, connectivity: null });
-    setFormNotes('');
-    setDialogVisible(true);
   };
 
   const chartData = useMemo(() => {
@@ -138,7 +132,6 @@ export default function MentalHealthScreen() {
   }
 
   const currentMetric = metrics.find((m) => m.key === selectedMetric);
-  const desc = metricDescriptions[selectedMetric];
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -151,14 +144,14 @@ export default function MentalHealthScreen() {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              style={{ marginTop: 8 }}
+              style={{ marginTop: 8, marginBottom: 8 }}
             >
               {metrics.map((m) => (
                 <Chip
                   key={m.key}
                   selected={selectedMetric === m.key}
                   onPress={() => setSelectedMetric(m.key)}
-                  style={styles.metricChip}
+                  style={{ marginRight: 8 }}
                 >
                   {m.label}
                 </Chip>
@@ -200,65 +193,13 @@ export default function MentalHealthScreen() {
           </Card.Content>
         </Card>
 
-        <Card style={styles.descCard}>
+        <Card style={styles.formCard}>
           <Card.Content>
-            <Title style={{ fontSize: 14 }}>{currentMetric?.label} Guide</Title>
-            <Text style={styles.descText}>
-              <Text style={{ fontWeight: 'bold' }}>Low:</Text> {desc?.low}
+            <Title style={{ fontSize: 16 }}>Daily Check-In</Title>
+            <Text style={{ fontStyle: 'italic', fontSize: 12, opacity: 0.7, marginBottom: 12 }}>
+              "Track your experiences, goals, blessings, and overall progress."
             </Text>
-            <Text style={styles.descText}>
-              <Text style={{ fontWeight: 'bold' }}>Balanced:</Text> {desc?.balanced}
-            </Text>
-            <Text style={styles.descText}>
-              <Text style={{ fontWeight: 'bold' }}>High:</Text> {desc?.high}
-            </Text>
-          </Card.Content>
-        </Card>
 
-        <Title style={styles.sectionTitle}>History</Title>
-        <DataTable style={styles.table}>
-          <DataTable.Header>
-            <DataTable.Title>Date</DataTable.Title>
-            {metrics.map((m) => (
-              <DataTable.Title key={m.key} numeric style={{ minWidth: 24 }}>
-                {m.label.slice(0, 3)}
-              </DataTable.Title>
-            ))}
-            <DataTable.Title numeric>Del</DataTable.Title>
-          </DataTable.Header>
-
-          {entries.map((e: any) => (
-            <DataTable.Row key={e.id}>
-              <DataTable.Cell>{e.date.split('-').slice(1).join('/')}</DataTable.Cell>
-              {metrics.map((m) => (
-                <DataTable.Cell key={m.key} numeric>
-                  <Text style={{ fontSize: 11, fontWeight: 'bold' }}>
-                    {e[m.key] !== null && e[m.key] !== undefined
-                      ? e[m.key] === -1 ? 'L' : e[m.key] === 1 ? 'H' : 'B'
-                      : '-'}
-                  </Text>
-                </DataTable.Cell>
-              ))}
-              <DataTable.Cell numeric>
-                <IconButton
-                  icon="delete"
-                  size={16}
-                  onPress={() => handleDelete(e.id)}
-                />
-              </DataTable.Cell>
-            </DataTable.Row>
-          ))}
-        </DataTable>
-
-        <View style={{ height: 100 }} />
-      </ScrollView>
-
-      <FAB icon="plus" style={styles.fab} onPress={openDialog} />
-
-      <Portal>
-        <Dialog visible={dialogVisible} onDismiss={() => setDialogVisible(false)}>
-          <Dialog.Title>Daily Check-In</Dialog.Title>
-          <Dialog.Content>
             <TextInput
               label="Date"
               value={formDate}
@@ -266,6 +207,8 @@ export default function MentalHealthScreen() {
               mode="outlined"
               style={{ marginBottom: 12 }}
             />
+
+            <Title style={{ fontSize: 14, marginBottom: 8 }}>Metrics</Title>
             {metrics.map((m) => (
               <View key={m.key} style={{ marginBottom: 12 }}>
                 <Text style={{ marginBottom: 4, fontWeight: 'bold', fontSize: 13 }}>
@@ -284,6 +227,7 @@ export default function MentalHealthScreen() {
                 />
               </View>
             ))}
+
             <TextInput
               label="Notes"
               value={formNotes}
@@ -291,49 +235,66 @@ export default function MentalHealthScreen() {
               mode="outlined"
               multiline
               numberOfLines={2}
+              style={{ marginBottom: 12 }}
             />
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setDialogVisible(false)}>Cancel</Button>
-            <Button onPress={handleSave}>Save</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+
+            <Title style={{ fontSize: 14, marginBottom: 8 }}>Journal</Title>
+            {helmPrompts.map((p) => (
+              <TextInput
+                key={p.key}
+                label={p.question}
+                value={journalPrompts[p.key]}
+                onChangeText={(text) =>
+                  setJournalPrompts((prev) => ({ ...prev, [p.key]: text }))
+                }
+                mode="outlined"
+                multiline
+                numberOfLines={2}
+                style={{ marginBottom: 12 }}
+              />
+            ))}
+
+            <Button mode="contained" onPress={handleSave}>
+              Save Check-In
+            </Button>
+          </Card.Content>
+        </Card>
+
+        <Title style={styles.sectionTitle}>Journal History</Title>
+        {journalLoading ? (
+          <ActivityIndicator style={{ marginTop: 16 }} />
+        ) : journalEntries.length === 0 ? (
+          <Text style={{ textAlign: 'center', opacity: 0.5, marginTop: 16 }}>
+            No journal entries yet.
+          </Text>
+        ) : (
+          journalEntries.map((entry: any) => (
+            <Card key={entry.id} style={styles.historyCard}>
+              <Card.Content>
+                <Text style={{ fontWeight: 'bold', marginBottom: 8 }}>{entry.date}</Text>
+                {helmPrompts.map((p) => (
+                  <View key={p.key} style={{ marginBottom: 8 }}>
+                    <Text style={{ fontSize: 11, opacity: 0.6 }}>{p.question}</Text>
+                    <Text style={{ fontSize: 13 }}>{entry[p.key] || '(empty)'}</Text>
+                  </View>
+                ))}
+              </Card.Content>
+            </Card>
+          ))
+        )}
+
+        <View style={{ height: 100 }} />
+      </ScrollView>
     </View>
   );
 }
-
-const FAB = ({ icon, style, onPress }: any) => (
-  <IconButton
-    icon={icon}
-    mode="contained"
-    size={28}
-    onPress={onPress}
-    style={[{
-      position: 'absolute',
-      right: 16,
-      bottom: 16,
-      borderRadius: 28,
-      elevation: 4,
-    }, style]}
-  />
-);
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
   headerTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
   chartCard: { marginBottom: 16, borderRadius: 12, elevation: 2 },
-  descCard: { marginBottom: 16, borderRadius: 12, elevation: 1 },
-  descText: { fontSize: 12, marginBottom: 2, opacity: 0.8 },
-  metricChip: { marginRight: 8, height: 32 },
+  formCard: { marginBottom: 16, borderRadius: 12, elevation: 2 },
   noData: { height: 180, justifyContent: 'center', alignItems: 'center' },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', marginTop: 16, marginBottom: 8 },
-  table: { backgroundColor: '#fff', borderRadius: 12, elevation: 1 },
-  fab: {
-    position: 'absolute',
-    right: 16,
-    bottom: 16,
-    borderRadius: 28,
-    elevation: 4,
-  },
+  historyCard: { marginBottom: 12, borderRadius: 12, elevation: 1 },
 });

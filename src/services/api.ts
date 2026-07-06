@@ -114,6 +114,13 @@ export const addMentalHealthEntry = (data: any) =>
 export const deleteMentalHealthEntry = (id: number) =>
   api.delete(`/mental-health/${id}`);
 
+export const getJournalEntry = (date: string) =>
+  api.get<any>(`/mental-health/journal/${date}`);
+export const saveJournalEntry = (data: any) =>
+  api.post<any>('/mental-health/journal', data);
+export const getAllJournalEntries = () =>
+  api.get<any[]>('/mental-health/journal');
+
 // Nutrition
 export const getNutritionDiary = (from: string, to: string) =>
   api.get<{ items: any[] }>(`/nutrition/diary?from=${from}&to=${to}`);
@@ -122,5 +129,16 @@ export const addNutritionMeal = (data: any) =>
   api.post<any>('/nutrition/diary', data);
 export const deleteNutritionMeal = (id: number) =>
   api.delete(`/nutrition/diary/${id}`);
+
+// Stat Builder
+export const getStatBuilderData = () => api.get<any>('/stat-builder/data');
+export const updateStatBuilderStats = (stats: Record<string, number>) => api.put('/stat-builder/stats', { stats });
+export const createStatBuilderSkill = (data: any) => api.post('/stat-builder/skills', data);
+export const updateStatBuilderSkill = (id: number, data: any) => api.put(`/stat-builder/skills/${id}`, data);
+export const deleteStatBuilderSkill = (id: number) => api.delete(`/stat-builder/skills/${id}`);
+export const toggleStatBuilderLog = (skill_id: number, date: string) => api.post('/stat-builder/log', { skill_id, date });
+export const getStatBuilderLogs = (from: string, to: string) => api.get<any[]>(`/stat-builder/logs?from=${from}&to=${to}`);
+export const calculateStatBuilderWeek = (from: string, to: string) => api.post('/stat-builder/calculate-week', { from, to });
+export const resetStatBuilderWeek = () => api.post('/stat-builder/reset-week');
 
 export default api;
