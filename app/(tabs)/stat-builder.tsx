@@ -72,7 +72,7 @@ export default function StatBuilder() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [weekDates]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -98,8 +98,12 @@ export default function StatBuilder() {
 
   const handleToggle = async (skillId: number, date: string) => {
     try {
-      await toggleStatBuilderLog(skillId, date);
-      fetchData();
+      const res = await toggleStatBuilderLog(skillId, date);
+      setStats(res.data.stats);
+      setProfile(res.data.profile);
+      if (res.data.leveledUp) {
+        Alert.alert('Level Up!', '🎉 Congratulations!');
+      }
     } catch (err) {
       Alert.alert('Error', 'Failed to toggle log');
     }
