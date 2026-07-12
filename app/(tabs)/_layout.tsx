@@ -36,9 +36,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="measurements"
         options={{
-          title: 'Stats',
+          title: 'Body',
           tabBarIcon: ({ color }) => (
-            <TabBarIcon name="balance-scale" color={color} />
+            <TabBarIcon name="bar-chart" color={color} />
           ),
         }}
       />
@@ -78,6 +78,15 @@ export default function TabLayout() {
           title: 'Stats',
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="trophy" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="todo"
+        options={{
+          title: 'Quests',
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="list-check" color={color} />
           ),
         }}
       />

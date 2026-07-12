@@ -141,4 +141,18 @@ export const getStatBuilderLogs = (from: string, to: string) => api.get<any[]>(`
 export const calculateStatBuilderWeek = (from: string, to: string) => api.post('/stat-builder/calculate-week', { from, to });
 export const resetStatBuilderWeek = () => api.post('/stat-builder/reset-week');
 
+// Todo / Quests
+export const getTodoTasks = (status?: string) =>
+  api.get<any[]>(`/todo/tasks${status ? `?status=${status}` : ''}`);
+export const createTodoTask = (data: any) =>
+  api.post<{ id: number; message: string }>('/todo/tasks', data);
+export const updateTodoTask = (id: number, data: any) =>
+  api.put<{ message: string }>(`/todo/tasks/${id}`, data);
+export const deleteTodoTask = (id: number) =>
+  api.delete<{ message: string }>(`/todo/tasks/${id}`);
+export const completeTodoTask = (id: number) =>
+  api.post<any>(`/todo/tasks/${id}/complete`);
+export const uncompleteTodoTask = (id: number) =>
+  api.post<any>(`/todo/tasks/${id}/uncomplete`);
+
 export default api;
