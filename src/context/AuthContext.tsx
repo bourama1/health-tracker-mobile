@@ -52,7 +52,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const authUrl = `${baseUrl}/api/auth/google?platform=mobile&redirect=${encodeURIComponent(
         redirectUrl
       )}`;
-      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUrl);
+      const result = await WebBrowser.openAuthSessionAsync(
+        authUrl,
+        redirectUrl
+      );
 
       if (result.type === 'success' && result.url) {
         // Parse the token from the redirect URL

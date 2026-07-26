@@ -186,8 +186,8 @@ function RestTimer({
       });
 
       // 4. Background Finish Alert (System-handled)
-      finishNotificationIdRef.current = await Notifications.scheduleNotificationAsync(
-        {
+      finishNotificationIdRef.current =
+        await Notifications.scheduleNotificationAsync({
           content: {
             title: 'Rest Over!',
             body: 'Time for your next set.',
@@ -196,10 +196,10 @@ function RestTimer({
           },
           trigger: {
             seconds: seconds,
-            type: Notifications.SchedulableNotificationTriggerType.TIME_INTERVAL,
+            type: Notifications.SchedulableNotificationTriggerType
+              .TIME_INTERVAL,
           },
-        }
-      );
+        });
 
       // 5. Load Alarm Sound for foreground use
       try {
@@ -819,7 +819,11 @@ function ActiveWorkout({
                 'All progress for this session will be lost.',
                 [
                   { text: 'Keep Going', style: 'cancel' },
-                  { text: 'Yes, Cancel', style: 'destructive', onPress: onCancel },
+                  {
+                    text: 'Yes, Cancel',
+                    style: 'destructive',
+                    onPress: onCancel,
+                  },
                 ]
               );
             }}

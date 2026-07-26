@@ -42,9 +42,21 @@ const valueLabel = (val: number | null) => {
 };
 
 const helmPrompts = [
-  { key: 'prompt1' as const, question: 'How are you feeling? Why do you think that is? If you don\'t know, make two guesses.' },
-  { key: 'prompt2' as const, question: 'What are you thinking about? Write at least three sentences about a current problem, a new idea, or what you are currently grateful for.' },
-  { key: 'prompt3' as const, question: 'What action steps can you take now? Where are you going next and what will you be doing before your next journal entry?' },
+  {
+    key: 'prompt1' as const,
+    question:
+      "How are you feeling? Why do you think that is? If you don't know, make two guesses.",
+  },
+  {
+    key: 'prompt2' as const,
+    question:
+      'What are you thinking about? Write at least three sentences about a current problem, a new idea, or what you are currently grateful for.',
+  },
+  {
+    key: 'prompt3' as const,
+    question:
+      'What action steps can you take now? Where are you going next and what will you be doing before your next journal entry?',
+  },
 ];
 
 export default function MentalHealthScreen() {
@@ -52,7 +64,9 @@ export default function MentalHealthScreen() {
   const [entries, setEntries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMetric, setSelectedMetric] = useState('energy');
-  const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
+  const [formDate, setFormDate] = useState(
+    new Date().toISOString().split('T')[0]
+  );
   const [formValues, setFormValues] = useState<Record<string, number | null>>({
     energy: null,
     mood: null,
@@ -61,7 +75,12 @@ export default function MentalHealthScreen() {
     connectivity: null,
   });
   const [formNotes, setFormNotes] = useState('');
-  const [journalPrompts, setJournalPrompts] = useState({ prompt1: '', prompt2: '', prompt3: '', prompt4: '' });
+  const [journalPrompts, setJournalPrompts] = useState({
+    prompt1: '',
+    prompt2: '',
+    prompt3: '',
+    prompt4: '',
+  });
   const [journalEntries, setJournalEntries] = useState<any[]>([]);
   const [journalLoading, setJournalLoading] = useState(false);
 
@@ -134,7 +153,9 @@ export default function MentalHealthScreen() {
   const currentMetric = metrics.find((m) => m.key === selectedMetric);
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <ScrollView>
         <Title style={styles.headerTitle}>Mental Health</Title>
 
@@ -164,10 +185,13 @@ export default function MentalHealthScreen() {
                   labels: chartData.map((d: any) =>
                     d.date.split('-').slice(1).join('/')
                   ),
-                  datasets: [{
-                    data: chartData.map((d: any) => d.value),
-                    color: (opacity = 1) => currentMetric?.color || theme.colors.primary,
-                  }],
+                  datasets: [
+                    {
+                      data: chartData.map((d: any) => d.value),
+                      color: (opacity = 1) =>
+                        currentMetric?.color || theme.colors.primary,
+                    },
+                  ],
                 }}
                 width={width - 64}
                 height={180}
@@ -196,7 +220,14 @@ export default function MentalHealthScreen() {
         <Card style={styles.formCard}>
           <Card.Content>
             <Title style={{ fontSize: 16 }}>Daily Check-In</Title>
-            <Text style={{ fontStyle: 'italic', fontSize: 12, opacity: 0.7, marginBottom: 12 }}>
+            <Text
+              style={{
+                fontStyle: 'italic',
+                fontSize: 12,
+                opacity: 0.7,
+                marginBottom: 12,
+              }}
+            >
               "Track your experiences, goals, blessings, and overall progress."
             </Text>
 
@@ -211,13 +242,18 @@ export default function MentalHealthScreen() {
             <Title style={{ fontSize: 14, marginBottom: 8 }}>Metrics</Title>
             {metrics.map((m) => (
               <View key={m.key} style={{ marginBottom: 12 }}>
-                <Text style={{ marginBottom: 4, fontWeight: 'bold', fontSize: 13 }}>
+                <Text
+                  style={{ marginBottom: 4, fontWeight: 'bold', fontSize: 13 }}
+                >
                   {m.label}
                 </Text>
                 <SegmentedButtons
                   value={formValues[m.key]?.toString() ?? ''}
                   onValueChange={(val) =>
-                    setFormValues((prev) => ({ ...prev, [m.key]: parseInt(val) }))
+                    setFormValues((prev) => ({
+                      ...prev,
+                      [m.key]: parseInt(val),
+                    }))
                   }
                   buttons={[
                     { value: '-1', label: 'Low' },
@@ -271,11 +307,17 @@ export default function MentalHealthScreen() {
           journalEntries.map((entry: any) => (
             <Card key={entry.id} style={styles.historyCard}>
               <Card.Content>
-                <Text style={{ fontWeight: 'bold', marginBottom: 8 }}>{entry.date}</Text>
+                <Text style={{ fontWeight: 'bold', marginBottom: 8 }}>
+                  {entry.date}
+                </Text>
                 {helmPrompts.map((p) => (
                   <View key={p.key} style={{ marginBottom: 8 }}>
-                    <Text style={{ fontSize: 11, opacity: 0.6 }}>{p.question}</Text>
-                    <Text style={{ fontSize: 13 }}>{entry[p.key] || '(empty)'}</Text>
+                    <Text style={{ fontSize: 11, opacity: 0.6 }}>
+                      {p.question}
+                    </Text>
+                    <Text style={{ fontSize: 13 }}>
+                      {entry[p.key] || '(empty)'}
+                    </Text>
                   </View>
                 ))}
               </Card.Content>
@@ -295,6 +337,11 @@ const styles = StyleSheet.create({
   chartCard: { marginBottom: 16, borderRadius: 12, elevation: 2 },
   formCard: { marginBottom: 16, borderRadius: 12, elevation: 2 },
   noData: { height: 180, justifyContent: 'center', alignItems: 'center' },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginTop: 16, marginBottom: 8 },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 16,
+    marginBottom: 8,
+  },
   historyCard: { marginBottom: 12, borderRadius: 12, elevation: 1 },
 });

@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import {
   Text,
   TextInput,
@@ -114,178 +121,207 @@ export default function PlanBuilderScreen() {
       <View
         style={[styles.container, { backgroundColor: theme.colors.background }]}
       >
-      <ScrollView>
-        <TextInput
-          label="Plan Name"
-          value={name}
-          onChangeText={setName}
-          style={styles.input}
-        />
-        <TextInput
-          label="Description (Optional)"
-          value={description}
-          onChangeText={setDescription}
-          multiline
-          numberOfLines={2}
-          style={styles.input}
-        />
+        <ScrollView>
+          <TextInput
+            label="Plan Name"
+            value={name}
+            onChangeText={setName}
+            style={styles.input}
+          />
+          <TextInput
+            label="Description (Optional)"
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            numberOfLines={2}
+            style={styles.input}
+          />
 
-        <View style={styles.daysHeader}>
-          <Text style={styles.sectionTitle}>Workout Days</Text>
-          <Button icon="plus" onPress={addDay}>
-            Add Day
-          </Button>
-        </View>
+          <View style={styles.daysHeader}>
+            <Text style={styles.sectionTitle}>Workout Days</Text>
+            <Button icon="plus" onPress={addDay}>
+              Add Day
+            </Button>
+          </View>
 
-        {days.map((day, dIdx) => (
-          <Card key={dIdx} style={styles.dayCard}>
-            <Card.Content>
-              <View style={styles.dayTitleRow}>
-                <TextInput
-                  value={day.name}
-                  onChangeText={(t) => {
-                    const newDays = [...days];
-                    newDays[dIdx].name = t;
-                    setDays(newDays);
-                  }}
-                  style={[styles.dayNameInput, { flex: 1 }]}
-                  dense
-                />
-                <IconButton
-                  icon="delete"
-                  size={20}
-                  onPress={() => removeDay(dIdx)}
-                />
-              </View>
-
-              {day.exercises.map((ex: any, eIdx: number) => (
-                <View key={eIdx} style={styles.exerciseRow}>
-                  <View style={{ flex: 2 }}>
-                    <Text style={styles.exerciseName}>{ex.name}</Text>
-                    <View style={styles.exInputRow}>
-                      <TextInput
-                        label="Sets"
-                        value={ex.sets?.toString()}
-                        onChangeText={(v) =>
-                          updateExercise(dIdx, eIdx, 'sets', parseInt(v) || 0)
-                        }
-                        keyboardType="numeric"
-                        style={styles.smallInput}
-                        dense
-                      />
-                      <TextInput
-                        label="Reps"
-                        value={ex.reps?.toString()}
-                        onChangeText={(v) =>
-                          updateExercise(dIdx, eIdx, 'reps', parseInt(v) || 0)
-                        }
-                        keyboardType="numeric"
-                        style={styles.smallInput}
-                        dense
-                      />
-                      <TextInput
-                        label="kg"
-                        value={ex.weight?.toString()}
-                        onChangeText={(v) =>
-                          updateExercise(dIdx, eIdx, 'weight', parseFloat(v) || 0)
-                        }
-                        keyboardType="numeric"
-                        style={styles.smallInput}
-                        dense
-                      />
-                    </View>
-                    <View style={[styles.exInputRow, { marginTop: 4 }]}>
-                      <TextInput
-                        label="Min"
-                        value={ex.reps_min?.toString() || ''}
-                        onChangeText={(v) =>
-                          updateExercise(dIdx, eIdx, 'reps_min', parseInt(v) || null)
-                        }
-                        keyboardType="numeric"
-                        style={styles.tinyInput}
-                        dense
-                      />
-                      <TextInput
-                        label="Max"
-                        value={ex.reps_max?.toString() || ''}
-                        onChangeText={(v) =>
-                          updateExercise(dIdx, eIdx, 'reps_max', parseInt(v) || null)
-                        }
-                        keyboardType="numeric"
-                        style={styles.tinyInput}
-                        dense
-                      />
-                      <TextInput
-                        label="RPE"
-                        value={ex.target_rpe?.toString() || ''}
-                        onChangeText={(v) =>
-                          updateExercise(dIdx, eIdx, 'target_rpe', parseFloat(v) || null)
-                        }
-                        keyboardType="numeric"
-                        style={styles.tinyInput}
-                        dense
-                      />
-                      <TextInput
-                        label="Rest(s)"
-                        value={ex.rest_seconds?.toString() || ''}
-                        onChangeText={(v) =>
-                          updateExercise(dIdx, eIdx, 'rest_seconds', parseInt(v) || 0)
-                        }
-                        keyboardType="numeric"
-                        style={styles.tinyInput}
-                        dense
-                      />
-                    </View>
-                    <View style={[styles.exInputRow, { marginTop: 4 }]}>
-                      <TextInput
-                        label="Tempo"
-                        value={ex.tempo || ''}
-                        onChangeText={(v) =>
-                          updateExercise(dIdx, eIdx, 'tempo', v)
-                        }
-                        style={[styles.smallInput, { flex: 1 }]}
-                        dense
-                        placeholder="3010"
-                      />
-                      <TextInput
-                        label="Notes"
-                        value={ex.notes || ''}
-                        onChangeText={(v) =>
-                          updateExercise(dIdx, eIdx, 'notes', v)
-                        }
-                        style={[styles.smallInput, { flex: 2 }]}
-                        dense
-                      />
-                    </View>
-                  </View>
+          {days.map((day, dIdx) => (
+            <Card key={dIdx} style={styles.dayCard}>
+              <Card.Content>
+                <View style={styles.dayTitleRow}>
+                  <TextInput
+                    value={day.name}
+                    onChangeText={(t) => {
+                      const newDays = [...days];
+                      newDays[dIdx].name = t;
+                      setDays(newDays);
+                    }}
+                    style={[styles.dayNameInput, { flex: 1 }]}
+                    dense
+                  />
                   <IconButton
-                    icon="close-circle-outline"
+                    icon="delete"
                     size={20}
-                    onPress={() => removeExercise(dIdx, eIdx)}
+                    onPress={() => removeDay(dIdx)}
                   />
                 </View>
-              ))}
 
-              <Button
-                mode="outlined"
-                icon="plus"
-                onPress={() => {
-                  setActiveDayIdx(dIdx);
-                  setLibraryVisible(true);
-                }}
-                style={{ marginTop: 8 }}
-              >
-                Add Exercise
-              </Button>
-            </Card.Content>
-          </Card>
-        ))}
+                {day.exercises.map((ex: any, eIdx: number) => (
+                  <View key={eIdx} style={styles.exerciseRow}>
+                    <View style={{ flex: 2 }}>
+                      <Text style={styles.exerciseName}>{ex.name}</Text>
+                      <View style={styles.exInputRow}>
+                        <TextInput
+                          label="Sets"
+                          value={ex.sets?.toString()}
+                          onChangeText={(v) =>
+                            updateExercise(dIdx, eIdx, 'sets', parseInt(v) || 0)
+                          }
+                          keyboardType="numeric"
+                          style={styles.smallInput}
+                          dense
+                        />
+                        <TextInput
+                          label="Reps"
+                          value={ex.reps?.toString()}
+                          onChangeText={(v) =>
+                            updateExercise(dIdx, eIdx, 'reps', parseInt(v) || 0)
+                          }
+                          keyboardType="numeric"
+                          style={styles.smallInput}
+                          dense
+                        />
+                        <TextInput
+                          label="kg"
+                          value={ex.weight?.toString()}
+                          onChangeText={(v) =>
+                            updateExercise(
+                              dIdx,
+                              eIdx,
+                              'weight',
+                              parseFloat(v) || 0
+                            )
+                          }
+                          keyboardType="numeric"
+                          style={styles.smallInput}
+                          dense
+                        />
+                      </View>
+                      <View style={[styles.exInputRow, { marginTop: 4 }]}>
+                        <TextInput
+                          label="Min"
+                          value={ex.reps_min?.toString() || ''}
+                          onChangeText={(v) =>
+                            updateExercise(
+                              dIdx,
+                              eIdx,
+                              'reps_min',
+                              parseInt(v) || null
+                            )
+                          }
+                          keyboardType="numeric"
+                          style={styles.tinyInput}
+                          dense
+                        />
+                        <TextInput
+                          label="Max"
+                          value={ex.reps_max?.toString() || ''}
+                          onChangeText={(v) =>
+                            updateExercise(
+                              dIdx,
+                              eIdx,
+                              'reps_max',
+                              parseInt(v) || null
+                            )
+                          }
+                          keyboardType="numeric"
+                          style={styles.tinyInput}
+                          dense
+                        />
+                        <TextInput
+                          label="RPE"
+                          value={ex.target_rpe?.toString() || ''}
+                          onChangeText={(v) =>
+                            updateExercise(
+                              dIdx,
+                              eIdx,
+                              'target_rpe',
+                              parseFloat(v) || null
+                            )
+                          }
+                          keyboardType="numeric"
+                          style={styles.tinyInput}
+                          dense
+                        />
+                        <TextInput
+                          label="Rest(s)"
+                          value={ex.rest_seconds?.toString() || ''}
+                          onChangeText={(v) =>
+                            updateExercise(
+                              dIdx,
+                              eIdx,
+                              'rest_seconds',
+                              parseInt(v) || 0
+                            )
+                          }
+                          keyboardType="numeric"
+                          style={styles.tinyInput}
+                          dense
+                        />
+                      </View>
+                      <View style={[styles.exInputRow, { marginTop: 4 }]}>
+                        <TextInput
+                          label="Tempo"
+                          value={ex.tempo || ''}
+                          onChangeText={(v) =>
+                            updateExercise(dIdx, eIdx, 'tempo', v)
+                          }
+                          style={[styles.smallInput, { flex: 1 }]}
+                          dense
+                          placeholder="3010"
+                        />
+                        <TextInput
+                          label="Notes"
+                          value={ex.notes || ''}
+                          onChangeText={(v) =>
+                            updateExercise(dIdx, eIdx, 'notes', v)
+                          }
+                          style={[styles.smallInput, { flex: 2 }]}
+                          dense
+                        />
+                      </View>
+                    </View>
+                    <IconButton
+                      icon="close-circle-outline"
+                      size={20}
+                      onPress={() => removeExercise(dIdx, eIdx)}
+                    />
+                  </View>
+                ))}
 
-        <Button mode="contained" onPress={handleSave} style={styles.saveButton}>
-          Save Plan
-        </Button>
-        <View style={{ height: 40 }} />
-      </ScrollView>
+                <Button
+                  mode="outlined"
+                  icon="plus"
+                  onPress={() => {
+                    setActiveDayIdx(dIdx);
+                    setLibraryVisible(true);
+                  }}
+                  style={{ marginTop: 8 }}
+                >
+                  Add Exercise
+                </Button>
+              </Card.Content>
+            </Card>
+          ))}
+
+          <Button
+            mode="contained"
+            onPress={handleSave}
+            style={styles.saveButton}
+          >
+            Save Plan
+          </Button>
+          <View style={{ height: 40 }} />
+        </ScrollView>
       </View>
 
       <Portal>

@@ -1,10 +1,25 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  StyleSheet, ScrollView, View, ActivityIndicator, Alert,
+  StyleSheet,
+  ScrollView,
+  View,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import {
-  Card, Title, Text, Button, Portal, Dialog, TextInput,
-  IconButton, useTheme, Chip, FAB, SegmentedButtons, Divider,
+  Card,
+  Title,
+  Text,
+  Button,
+  Portal,
+  Dialog,
+  TextInput,
+  IconButton,
+  useTheme,
+  Chip,
+  FAB,
+  SegmentedButtons,
+  Divider,
 } from 'react-native-paper';
 import {
   getTodoTasks,
@@ -62,7 +77,9 @@ export default function TodoList() {
   const [priority, setPriority] = useState(1);
   const [startDate, setStartDate] = useState('');
   const [dueDate, setDueDate] = useState('');
-  const [rewards, setRewards] = useState<TaskReward[]>([{ stat_name: 'strength', bonus: 1 }]);
+  const [rewards, setRewards] = useState<TaskReward[]>([
+    { stat_name: 'strength', bonus: 1 },
+  ]);
 
   const fetchTasks = useCallback(async () => {
     try {
@@ -71,7 +88,9 @@ export default function TodoList() {
       let data = res.data || [];
       if (filter === 'overdue') {
         const today = new Date().toISOString().split('T')[0];
-        data = data.filter((t: Task) => t.due_date && t.due_date < today && t.completed === 0);
+        data = data.filter(
+          (t: Task) => t.due_date && t.due_date < today && t.completed === 0
+        );
       }
       setTasks(data);
     } catch (err) {
@@ -81,7 +100,9 @@ export default function TodoList() {
     }
   }, [filter]);
 
-  useEffect(() => { fetchTasks(); }, [fetchTasks]);
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   const getDaysUntil = (dateStr: string | null) => {
     if (!dateStr) return null;
@@ -132,9 +153,11 @@ export default function TodoList() {
     setPriority(task.priority || 1);
     setStartDate(task.start_date || '');
     setDueDate(task.due_date || '');
-    setRewards(task.rewards?.length > 0
-      ? task.rewards.map((r) => ({ stat_name: r.stat_name, bonus: r.bonus }))
-      : [{ stat_name: 'strength', bonus: 1 }]);
+    setRewards(
+      task.rewards?.length > 0
+        ? task.rewards.map((r) => ({ stat_name: r.stat_name, bonus: r.bonus }))
+        : [{ stat_name: 'strength', bonus: 1 }]
+    );
     setEditingTask(task);
     setDialogVisible(true);
   };
@@ -149,7 +172,10 @@ export default function TodoList() {
         priority,
         start_date: startDate || null,
         due_date: dueDate || null,
-        rewards: rewards.map((r) => ({ ...r, bonus: parseInt(String(r.bonus)) || 1 })),
+        rewards: rewards.map((r) => ({
+          ...r,
+          bonus: parseInt(String(r.bonus)) || 1,
+        })),
       };
       if (editingTask) {
         await updateTodoTask(editingTask.id, payload);
@@ -168,17 +194,23 @@ export default function TodoList() {
     try {
       const res = await completeTodoTask(task.id);
       const data = res.data;
-      const statMsg = task.rewards?.map((r) => {
-        const cfg = STATS.find((s) => s.key === r.stat_name);
-        return `${cfg?.icon || ''} +${r.bonus} ${cfg?.label || r.stat_name}`;
-      }).join(', ') || '';
+      const statMsg =
+        task.rewards
+          ?.map((r) => {
+            const cfg = STATS.find((s) => s.key === r.stat_name);
+            return `${cfg?.icon || ''} +${r.bonus} ${cfg?.label || r.stat_name}`;
+          })
+          .join(', ') || '';
       Alert.alert(
         'Quest Complete!',
         `+${data.xpGained} XP${statMsg ? '\n' + statMsg : ''}${data.leveledUp ? '\n🎉 LEVEL UP!' : ''}`
       );
       fetchTasks();
     } catch (err: any) {
-      Alert.alert('Error', err.response?.data?.error || 'Failed to complete task');
+      Alert.alert(
+        'Error',
+        err.response?.data?.error || 'Failed to complete task'
+      );
     }
   };
 
@@ -214,7 +246,9 @@ export default function TodoList() {
   };
 
   const updateReward = (index: number, field: keyof TaskReward, value: any) => {
-    setRewards(rewards.map((r, i) => i === index ? { ...r, [field]: value } : r));
+    setRewards(
+      rewards.map((r, i) => (i === index ? { ...r, [field]: value } : r))
+    );
   };
 
   const removeReward = (index: number) => {
@@ -223,22 +257,32 @@ export default function TodoList() {
   };
 
   const renderTask = (task: Task) => {
-    const priCfg = PRIORITIES.find((p) => p.value === task.priority) || PRIORITIES[0];
+    const priCfg =
+      PRIORITIES.find((p) => p.value === task.priority) || PRIORITIES[0];
     const dueLabel = getDueLabel(task.due_date);
     const dueColor = getDueColor(task.due_date, task.completed);
     const statColor = task.rewards?.[0]
-      ? (STATS.find((s) => s.key === task.rewards[0].stat_name)?.color || '#42a5f5')
+      ? STATS.find((s) => s.key === task.rewards[0].stat_name)?.color ||
+        '#42a5f5'
       : '#42a5f5';
 
     return (
-      <Card key={task.id} style={[styles.taskCard, { borderLeftColor: task.completed ? '#43a047' : statColor }]}>
+      <Card
+        key={task.id}
+        style={[
+          styles.taskCard,
+          { borderLeftColor: task.completed ? '#43a047' : statColor },
+        ]}
+      >
         <Card.Content style={{ paddingVertical: 10 }}>
           <View style={styles.taskHeader}>
             <IconButton
               icon={task.completed ? 'check-circle' : 'circle-outline'}
               iconColor={task.completed ? '#43a047' : '#888'}
               size={24}
-              onPress={() => task.completed ? handleUncomplete(task) : handleComplete(task)}
+              onPress={() =>
+                task.completed ? handleUncomplete(task) : handleComplete(task)
+              }
               style={{ margin: 0 }}
             />
             <Text
@@ -248,19 +292,38 @@ export default function TodoList() {
               {task.title}
             </Text>
             {!task.completed && (
-              <IconButton icon="pencil" size={18} onPress={() => handleOpenEdit(task)} style={{ margin: 0 }} />
+              <IconButton
+                icon="pencil"
+                size={18}
+                onPress={() => handleOpenEdit(task)}
+                style={{ margin: 0 }}
+              />
             )}
             {!task.completed && (
-              <IconButton icon="delete" size={18} onPress={() => handleDelete(task)} style={{ margin: 0 }} />
+              <IconButton
+                icon="delete"
+                size={18}
+                onPress={() => handleDelete(task)}
+                style={{ margin: 0 }}
+              />
             )}
           </View>
 
           {task.description ? (
-            <Text style={styles.taskDesc} numberOfLines={2}>{task.description}</Text>
+            <Text style={styles.taskDesc} numberOfLines={2}>
+              {task.description}
+            </Text>
           ) : null}
 
           <View style={styles.chipRow}>
-            <Chip compact style={[styles.priorityChip, { backgroundColor: priCfg.color + '22' }]} textStyle={{ color: priCfg.color, fontSize: 11 }}>
+            <Chip
+              compact
+              style={[
+                styles.priorityChip,
+                { backgroundColor: priCfg.color + '22' },
+              ]}
+              textStyle={{ color: priCfg.color, fontSize: 11 }}
+            >
               {priCfg.label}
             </Chip>
             <Chip compact style={styles.xpChip} textStyle={styles.xpChipText}>
@@ -269,13 +332,25 @@ export default function TodoList() {
             {task.rewards?.map((r, i) => {
               const cfg = STATS.find((s) => s.key === r.stat_name);
               return (
-                <Chip key={i} compact style={[styles.statChip, { backgroundColor: (cfg?.color || '#666') + '22' }]} textStyle={{ color: cfg?.color || '#666', fontSize: 11 }}>
+                <Chip
+                  key={i}
+                  compact
+                  style={[
+                    styles.statChip,
+                    { backgroundColor: (cfg?.color || '#666') + '22' },
+                  ]}
+                  textStyle={{ color: cfg?.color || '#666', fontSize: 11 }}
+                >
                   {cfg?.icon} +{r.bonus} {cfg?.label}
                 </Chip>
               );
             })}
             {dueLabel ? (
-              <Chip compact style={[styles.dueChip, { backgroundColor: dueColor + '22' }]} textStyle={{ color: dueColor, fontSize: 11 }}>
+              <Chip
+                compact
+                style={[styles.dueChip, { backgroundColor: dueColor + '22' }]}
+                textStyle={{ color: dueColor, fontSize: 11 }}
+              >
                 📅 {dueLabel}
               </Chip>
             ) : null}
@@ -295,10 +370,15 @@ export default function TodoList() {
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
         <View style={styles.header}>
           <Text style={styles.headerTitle}>📋 Quests</Text>
-          <Button mode="contained" onPress={handleOpenCreate} compact>New</Button>
+          <Button mode="contained" onPress={handleOpenCreate} compact>
+            New
+          </Button>
         </View>
 
         <SegmentedButtons
@@ -316,10 +396,13 @@ export default function TodoList() {
         {tasks.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyText}>
-              {filter === 'active' ? 'No active quests. Create one to start earning XP!'
-                : filter === 'overdue' ? 'No overdue quests. Nice work!'
-                : filter === 'completed' ? 'No completed quests yet.'
-                : 'No quests yet. Create your first!'}
+              {filter === 'active'
+                ? 'No active quests. Create one to start earning XP!'
+                : filter === 'overdue'
+                  ? 'No overdue quests. Nice work!'
+                  : filter === 'completed'
+                    ? 'No completed quests yet.'
+                    : 'No quests yet. Create your first!'}
             </Text>
           </View>
         ) : (
@@ -328,46 +411,105 @@ export default function TodoList() {
       </ScrollView>
 
       <Portal>
-        <Dialog visible={dialogVisible} onDismiss={() => { setDialogVisible(false); resetForm(); }} style={{ maxHeight: '80%' }}>
-          <Dialog.Title>{editingTask ? 'Edit Quest' : 'New Quest'}</Dialog.Title>
+        <Dialog
+          visible={dialogVisible}
+          onDismiss={() => {
+            setDialogVisible(false);
+            resetForm();
+          }}
+          style={{ maxHeight: '80%' }}
+        >
+          <Dialog.Title>
+            {editingTask ? 'Edit Quest' : 'New Quest'}
+          </Dialog.Title>
           <Dialog.ScrollArea style={{ maxHeight: 500 }}>
             <ScrollView>
               <View style={{ padding: 16 }}>
-                <TextInput label="Quest title" value={title} onChangeText={setTitle} mode="outlined" />
-                <TextInput label="Description (optional)" value={description} onChangeText={setDescription} mode="outlined" multiline numberOfLines={2} style={{ marginTop: 10 }} />
+                <TextInput
+                  label="Quest title"
+                  value={title}
+                  onChangeText={setTitle}
+                  mode="outlined"
+                />
+                <TextInput
+                  label="Description (optional)"
+                  value={description}
+                  onChangeText={setDescription}
+                  mode="outlined"
+                  multiline
+                  numberOfLines={2}
+                  style={{ marginTop: 10 }}
+                />
 
                 <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
-                  <TextInput label="XP Reward" value={xpReward} onChangeText={setXpReward} mode="outlined" keyboardType="numeric" style={{ flex: 1 }} />
+                  <TextInput
+                    label="XP Reward"
+                    value={xpReward}
+                    onChangeText={setXpReward}
+                    mode="outlined"
+                    keyboardType="numeric"
+                    style={{ flex: 1 }}
+                  />
                 </View>
 
-                <Text style={{ marginTop: 12, fontWeight: 'bold', fontSize: 13 }}>Priority</Text>
+                <Text
+                  style={{ marginTop: 12, fontWeight: 'bold', fontSize: 13 }}
+                >
+                  Priority
+                </Text>
                 <SegmentedButtons
                   value={String(priority)}
                   onValueChange={(v) => setPriority(Number(v))}
-                  buttons={PRIORITIES.map((p) => ({ value: String(p.value), label: p.label }))}
+                  buttons={PRIORITIES.map((p) => ({
+                    value: String(p.value),
+                    label: p.label,
+                  }))}
                   style={{ marginTop: 6 }}
                 />
 
                 <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
-                  <TextInput label="Start Date" value={startDate} onChangeText={setStartDate} mode="outlined" placeholder="YYYY-MM-DD" style={{ flex: 1 }} />
-                  <TextInput label="Due Date" value={dueDate} onChangeText={setDueDate} mode="outlined" placeholder="YYYY-MM-DD" style={{ flex: 1 }} />
+                  <TextInput
+                    label="Start Date"
+                    value={startDate}
+                    onChangeText={setStartDate}
+                    mode="outlined"
+                    placeholder="YYYY-MM-DD"
+                    style={{ flex: 1 }}
+                  />
+                  <TextInput
+                    label="Due Date"
+                    value={dueDate}
+                    onChangeText={setDueDate}
+                    mode="outlined"
+                    placeholder="YYYY-MM-DD"
+                    style={{ flex: 1 }}
+                  />
                 </View>
 
                 <Divider style={{ marginVertical: 14 }} />
-                <Text style={{ fontWeight: 'bold', fontSize: 13, marginBottom: 8 }}>Stat Rewards</Text>
+                <Text
+                  style={{ fontWeight: 'bold', fontSize: 13, marginBottom: 8 }}
+                >
+                  Stat Rewards
+                </Text>
 
                 {rewards.map((r, i) => (
                   <View key={i} style={styles.rewardRow}>
                     <SegmentedButtons
                       value={r.stat_name}
                       onValueChange={(v) => updateReward(i, 'stat_name', v)}
-                      buttons={STATS.map((sc) => ({ value: sc.key, label: sc.label }))}
+                      buttons={STATS.map((sc) => ({
+                        value: sc.key,
+                        label: sc.label,
+                      }))}
                       style={{ flex: 3 }}
                     />
                     <TextInput
                       label="+"
                       value={String(r.bonus)}
-                      onChangeText={(v) => updateReward(i, 'bonus', Number(v) || 1)}
+                      onChangeText={(v) =>
+                        updateReward(i, 'bonus', Number(v) || 1)
+                      }
                       mode="outlined"
                       keyboardType="numeric"
                       style={{ flex: 1 }}
@@ -381,15 +523,30 @@ export default function TodoList() {
                   </View>
                 ))}
 
-                <Button mode="text" onPress={addReward} icon="plus" style={{ marginTop: 4 }}>
+                <Button
+                  mode="text"
+                  onPress={addReward}
+                  icon="plus"
+                  style={{ marginTop: 4 }}
+                >
                   Add Stat Reward
                 </Button>
               </View>
             </ScrollView>
           </Dialog.ScrollArea>
           <Dialog.Actions>
-            <Button onPress={() => { setDialogVisible(false); resetForm(); }}>Cancel</Button>
-            <Button onPress={handleSave} disabled={!title.trim() || rewards.length === 0}>
+            <Button
+              onPress={() => {
+                setDialogVisible(false);
+                resetForm();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onPress={handleSave}
+              disabled={!title.trim() || rewards.length === 0}
+            >
               {editingTask ? 'Update' : 'Create'}
             </Button>
           </Dialog.Actions>
@@ -404,7 +561,12 @@ export default function TodoList() {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 12 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   headerTitle: { fontSize: 20, fontWeight: 'bold' },
   emptyState: { alignItems: 'center', paddingVertical: 40 },
   emptyText: { fontSize: 14, color: '#888', textAlign: 'center' },
@@ -419,6 +581,11 @@ const styles = StyleSheet.create({
   xpChipText: { color: '#b8860b', fontSize: 11 },
   statChip: { height: 24 },
   dueChip: { height: 24 },
-  rewardRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+  rewardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
   fab: { position: 'absolute', right: 16, bottom: 16 },
 });

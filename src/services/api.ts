@@ -132,13 +132,20 @@ export const deleteNutritionMeal = (id: number) =>
 
 // Stat Builder
 export const getStatBuilderData = () => api.get<any>('/stat-builder/data');
-export const updateStatBuilderStats = (stats: Record<string, number>) => api.put('/stat-builder/stats', { stats });
-export const createStatBuilderSkill = (data: any) => api.post('/stat-builder/skills', data);
-export const updateStatBuilderSkill = (id: number, data: any) => api.put(`/stat-builder/skills/${id}`, data);
-export const deleteStatBuilderSkill = (id: number) => api.delete(`/stat-builder/skills/${id}`);
-export const toggleStatBuilderLog = (skill_id: number, date: string) => api.post('/stat-builder/log', { skill_id, date });
-export const getStatBuilderLogs = (from: string, to: string) => api.get<any[]>(`/stat-builder/logs?from=${from}&to=${to}`);
-export const calculateStatBuilderWeek = (from: string, to: string) => api.post('/stat-builder/calculate-week', { from, to });
+export const updateStatBuilderStats = (stats: Record<string, number>) =>
+  api.put('/stat-builder/stats', { stats });
+export const createStatBuilderSkill = (data: any) =>
+  api.post('/stat-builder/skills', data);
+export const updateStatBuilderSkill = (id: number, data: any) =>
+  api.put(`/stat-builder/skills/${id}`, data);
+export const deleteStatBuilderSkill = (id: number) =>
+  api.delete(`/stat-builder/skills/${id}`);
+export const toggleStatBuilderLog = (skill_id: number, date: string) =>
+  api.post('/stat-builder/log', { skill_id, date });
+export const getStatBuilderLogs = (from: string, to: string) =>
+  api.get<any[]>(`/stat-builder/logs?from=${from}&to=${to}`);
+export const calculateStatBuilderWeek = (from: string, to: string) =>
+  api.post('/stat-builder/calculate-week', { from, to });
 export const resetStatBuilderWeek = () => api.post('/stat-builder/reset-week');
 
 // Todo / Quests
