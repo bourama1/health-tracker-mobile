@@ -40,7 +40,7 @@ const STATS = [
 ];
 
 const PRIORITIES = [
-  { value: 1, label: 'Low', color: '#888' },
+  { value: 1, label: 'Low', color: '#888888' },
   { value: 2, label: 'Med', color: '#fb8c00' },
   { value: 3, label: 'High', color: '#e53935' },
 ];
@@ -122,12 +122,12 @@ export default function TodoList() {
   };
 
   const getDueColor = (dateStr: string | null, completed: number) => {
-    if (completed) return '#888';
+    if (completed) return '#888888';
     const days = getDaysUntil(dateStr);
-    if (days === null) return '#888';
+    if (days === null) return '#888888';
     if (days < 0) return '#e53935';
     if (days <= 2) return '#fb8c00';
-    return '#888';
+    return '#888888';
   };
 
   const resetForm = () => {
@@ -337,9 +337,9 @@ export default function TodoList() {
                   compact
                   style={[
                     styles.statChip,
-                    { backgroundColor: (cfg?.color || '#666') + '22' },
+                    { backgroundColor: (cfg?.color || '#666666') + '22' },
                   ]}
-                  textStyle={{ color: cfg?.color || '#666', fontSize: 11 }}
+                  textStyle={{ color: cfg?.color || '#666666', fontSize: 11 }}
                 >
                   {cfg?.icon} +{r.bonus} {cfg?.label}
                 </Chip>

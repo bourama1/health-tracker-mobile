@@ -54,6 +54,26 @@ import {
 } from '@/src/services/types';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+// Builds a single readable summary of an exercise's prescription, e.g.
+// "4 x 6-8 reps · RPE 8 · Rest 180s · Tempo 3-1-1-0". Used anywhere a
+// workout day is previewed so the same fields show consistently (mirrors
+// the web app's formatExercisePrescription).
+function formatExercisePrescription(ex: any): string {
+  const parts: string[] = [];
+  const sets = ex.sets ?? ex.default_sets;
+  const repsLabel =
+    ex.reps_min || ex.reps_max
+      ? `${ex.reps_min ?? '?'}${ex.reps_max ? `-${ex.reps_max}` : ''}`
+      : ex.reps ?? ex.default_reps;
+  if (sets && repsLabel) parts.push(`${sets} x ${repsLabel} reps`);
+  else if (sets) parts.push(`${sets} sets`);
+  else if (repsLabel) parts.push(`${repsLabel} reps`);
+  if (ex.target_rpe) parts.push(`RPE ${ex.target_rpe}`);
+  if (ex.rest_seconds) parts.push(`Rest ${ex.rest_seconds}s`);
+  if (ex.tempo) parts.push(`Tempo ${ex.tempo}`);
+  return parts.join(' \u00b7 ');
+}
+
 // ─── Notification Config ─────────────────────────────────────────────────────
 
 // Only set handler if not in a restricted environment
@@ -1209,32 +1229,47 @@ export default function WorkoutsScreen() {
                           lastTrainedMuscles={lastTrainedMuscles}
                         />
                       </View>
-                      <View style={styles.exerciseChips}>
-                        {day.exercises.slice(0, 4).map((ex, i) => (
-                          <Chip
-                            key={i}
-                            style={[
-                              styles.exerciseChip,
-                              { backgroundColor: theme.colors.surfaceVariant },
-                            ]}
-                            textStyle={{ fontSize: 10 }}
-                            compact
-                          >
-                            {ex.name}
-                          </Chip>
-                        ))}
-                        {day.exercises.length > 4 && (
-                          <Chip
-                            style={[
-                              styles.exerciseChip,
-                              { backgroundColor: theme.colors.surfaceVariant },
-                            ]}
-                            textStyle={{ fontSize: 10 }}
-                            compact
-                          >
-                            +{day.exercises.length - 4} more
-                          </Chip>
-                        )}
+                      <View style={styles.exerciseList}>
+                        {day.exercises.map((ex, i) => {
+                          const spec = formatExercisePrescription(ex);
+                          return (
+                            <View
+                              key={i}
+                              style={[
+                                styles.exerciseListRow,
+                                i < day.exercises.length - 1 && {
+                                  borderBottomWidth: 1,
+                                  borderBottomColor: theme.colors.outlineVariant,
+                                },
+                              ]}
+                            >
+                              <Text style={styles.exerciseListName}>
+                                {ex.name}
+                              </Text>
+                              {spec && (
+                                <Text
+                                  style={[
+                                    styles.exerciseListSpec,
+                                    { color: theme.colors.onSurfaceVariant },
+                                  ]}
+                                >
+                                  {spec}
+                                </Text>
+                              )}
+                              {ex.notes && (
+                                <Text
+                                  numberOfLines={1}
+                                  style={[
+                                    styles.exerciseListNotes,
+                                    { color: theme.colors.onSurfaceVariant },
+                                  ]}
+                                >
+                                  {ex.notes}
+                                </Text>
+                              )}
+                            </View>
+                          );
+                        })}
                       </View>
                     </Card.Content>
                   </Card>
@@ -1311,6 +1346,25 @@ const styles = StyleSheet.create({
   exerciseChip: {
     marginRight: 4,
     marginBottom: 4,
+  },
+  exerciseList: {
+    marginTop: 8,
+  },
+  exerciseListRow: {
+    paddingVertical: 4,
+  },
+  exerciseListName: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  exerciseListSpec: {
+    fontSize: 11,
+    marginTop: 1,
+  },
+  exerciseListNotes: {
+    fontSize: 11,
+    fontStyle: 'italic',
+    marginTop: 1,
   },
   timerCard: {
     marginBottom: 16,
