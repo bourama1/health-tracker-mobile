@@ -142,11 +142,17 @@ export const deleteStatBuilderSkill = (id: number) =>
   api.delete(`/stat-builder/skills/${id}`);
 export const toggleStatBuilderLog = (skill_id: number, date: string) =>
   api.post('/stat-builder/log', { skill_id, date });
+export const toggleStatBuilderFreeze = (skill_id: number, date: string) =>
+  api.post('/stat-builder/freeze', { skill_id, date });
 export const getStatBuilderLogs = (from: string, to: string) =>
   api.get<any[]>(`/stat-builder/logs?from=${from}&to=${to}`);
 export const calculateStatBuilderWeek = (from: string, to: string) =>
   api.post('/stat-builder/calculate-week', { from, to });
 export const resetStatBuilderWeek = () => api.post('/stat-builder/reset-week');
+export const updateStatBuilderUnlock = (data: {
+  xp_threshold: number;
+  reward_text: string;
+}) => api.put('/stat-builder/unlock', data);
 
 // Todo / Quests
 export const getTodoTasks = (status?: string) =>
